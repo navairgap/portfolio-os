@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import BootSequence from "./system/BootSequence";
-import LoginScreen from "./system/LoginScreen";
 import ShutdownScreen from "./system/ShutdownScreen";
 import Desktop from "./system/Desktop";
 import { useSession } from "./store/useSessionStore";
@@ -36,19 +35,18 @@ export default function App() {
   }, [setPhase]);
   useEffect(() => {
     if (phase !== "desktop") return;
+    if (s.autoTerminal && !localStorage.getItem("os.autoterm")) {
+      localStorage.setItem("os.autoterm", "1");
+      setTimeout(() => import("./system/DesktopIcons").then((m) => m.openApp("terminal")), 900);
+    }
     localStorage.setItem("os.bootcount", String(Number(localStorage.getItem("os.bootcount") || 0) + 1));
     localStorage.setItem("os.lastboot", String(Date.now()));
     fetch("./api/telemetry/increment", { method: "POST" }).catch(() => {});
   }, [phase]);
 
   const onBootDone = useCallback(() => {
-    if (s.skipBoot && bootedOnce) { restoreSession(); setPhase("desktop"); }
-    else setPhase("login");
-  }, [s.skipBoot, bootedOnce, setPhase]);
-
-  const onLogin = useCallback(() => {
-    setBootedOnce(true);
     restoreSession();
+    setBootedOnce(true);
     setPhase("desktop");
   }, [setPhase]);
 
@@ -63,9 +61,7 @@ export default function App() {
       <AnimatePresence>
         {phase === "boot" && <BootSequence key="boot" onDone={onBootDone} />}
       </AnimatePresence>
-      <AnimatePresence>
-        {phase === "login" && <LoginScreen key="login" onLogin={onLogin} />}
-      </AnimatePresence>
+
       {phase === "desktop" && <Desktop />}
       {phase === "lock" && <Desktop />}
       {phase === "lock" && <LockScreen />}

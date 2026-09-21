@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Palette, Monitor, Volume2, Wifi, User, Clock, Bell, Keyboard, HardDrive, Info, Power } from "lucide-react";
+import { Palette, Monitor, Volume2, Wifi, User, Clock, Bell, Keyboard, HardDrive, Info, Power, RotateCw, TerminalSquare } from "lucide-react";
 import { useSettings } from "../store/useSettingsStore";
 import { useFS } from "../store/useFileSystemStore";
 import { useNotifications } from "../store/useNotificationStore";
@@ -34,7 +34,7 @@ const TABS = [
   ["appearance", "Appearance", Palette], ["display", "Display", Monitor], ["sound", "Sound", Volume2],
   ["network", "Network", Wifi], ["users", "Users", User], ["datetime", "Date & Time", Clock],
   ["notifications", "Notifications", Bell], ["keyboard", "Keyboard", Keyboard],
-  ["storage", "Storage", HardDrive], ["power", "Power", Power], ["about", "About This System", Info],
+  ["storage", "Storage", HardDrive], ["power", "Power", Power], ["boot", "Boot", RotateCw], ["terminal", "Terminal", TerminalSquare], ["about", "About This System", Info]
 ] as const;
 
 export default function SettingsApp({ win }: { win: WindowState }) {
@@ -212,7 +212,25 @@ export default function SettingsApp({ win }: { win: WindowState }) {
           <Row label="Battery drain simulation"><Toggle on={s.powerDrain} onChange={(v: boolean) => s.set({ powerDrain: v })} /></Row>
           <Row label="Automatic suspend"><span className="text-[12px] text-[rgba(244,244,245,.38)]">never — this is a portfolio</span></Row>
         </>)}
-        {tab === "about" && (<>
+        {tab === "boot" && (<>
+          <h3 className="text-[13px] font-semibold mb-1">Boot</h3>
+          <Row label="Full boot sequence">
+            <div className="flex gap-1">{[["first","First visit"],["always","Always"],["never","Never"]].map(([v,l]) => (
+              <button key={v} onClick={() => s.set({ bootFull: v as any })} className={`px-2.5 py-1 text-[12px] ${s.bootFull===v?"bg-[var(--accent)] text-black":"bg-[rgba(255,255,255,.06)]"}`}>{l}</button>))}</div>
+          </Row>
+          <Row label="Boot sound"><Toggle on={s.bootSound} onChange={(v:boolean)=>s.set({bootSound:v})} /></Row>
+          <Row label="Matrix rain on login"><Toggle on={s.loginMatrix} onChange={(v:boolean)=>s.set({loginMatrix:v})} /></Row>
+          <Row label="Auto-open terminal on login"><Toggle on={s.autoTerminal} onChange={(v:boolean)=>s.set({autoTerminal:v})} /></Row>
+        </>)}
+        {tab === "terminal" && (<>
+          <h3 className="text-[13px] font-semibold mb-1">Terminal</h3>
+          <Row label="Fastfetch on launch"><Toggle on={s.showFastfetch} onChange={(v:boolean)=>s.set({showFastfetch:v})} /></Row>
+          <Row label="Prompt style">
+            <div className="flex gap-1">{[["blackarch","BlackArch"],["minimal","Minimal"],["plain","Plain"]].map(([v,l]) => (
+              <button key={v} onClick={() => s.set({ promptStyle: v as any })} className={`px-2.5 py-1 text-[12px] ${s.promptStyle===v?"bg-[var(--accent)] text-black":"bg-[rgba(255,255,255,.06)]"}`}>{l}</button>))}</div>
+          </Row>
+        </>)}
+        {tab === "about" && (<>)
           <h3 className="text-[13px] font-semibold mb-1">About This System</h3>
           <p className="text-[13px] text-[rgba(244,244,245,.72)] max-w-md leading-[1.7]">
             This OS is a portfolio. Every window, every file, every command tells you something about navairgap —

@@ -25,12 +25,12 @@ export default function ContextMenu() {
   return (
     <AnimatePresence>
       <motion.div ref={ref} role="menu" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .1 }}
-        className="fixed z-[180] w-52 rounded-[8px] bg-[rgba(20,20,24,.95)] backdrop-blur-xl border border-[rgba(255,255,255,.08)] shadow-[0_8px_24px_rgba(0,0,0,.4)] p-1.5"
+        className="fixed z-[180] w-56 bg-black border border-[var(--border-strong)] p-1"
         style={{ left: x, top: y }}>
-        {menu.items.map((it, i) => it.sep ? <div key={i} className="my-1 h-px bg-[rgba(255,255,255,.08)]" /> : (
+        {menu.items.map((it, i) => it.sep ? <div key={i} className="my-1 text-[10px] text-[var(--text-tertiary)] leading-none px-3 select-none">{"─".repeat(24)}</div> : (
           <button key={i} role="menuitem" disabled={it.disabled} onClick={() => { setMenu(null); it.action?.(); }}
-            className={`w-full text-left px-3 py-[7px] rounded-[6px] text-[13px] font-medium
-              ${it.disabled ? "text-[rgba(244,244,245,.28)]" : it.danger ? "text-[#ff5c5c] hover:bg-[rgba(255,92,92,.12)]" : "text-[#f4f4f5] hover:bg-[rgba(255,255,255,.08)]"}`}>
+            className={`w-full text-left px-3 py-[6px] text-[12px] uppercase tracking-[.04em]
+              ${it.disabled ? "text-[var(--text-tertiary)] opacity-40" : "text-[var(--text-primary)] hover:bg-[var(--accent)] hover:text-black"}`}>
             {it.label}
           </button>
         ))}

@@ -33,8 +33,7 @@ export default function Dock() {
 
   return (
     <motion.div initial={{ x: -70, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 22, delay: .25 }}
-      className="fixed left-3 top-1/2 -translate-y-1/2 z-[105] flex flex-col gap-2 p-2 rounded-[16px] w-[64px]"
-      style={{ background: "var(--bg-overlay)", backdropFilter: "blur(20px)", border: "1px solid var(--border-subtle)" }}
+      className="fixed left-2 top-1/2 -translate-y-1/2 z-[105] flex flex-col gap-1 w-[48px]"
       role="toolbar" aria-label="dock">
       {APPS.filter((a) => isInstalled(a.id)).map((app) => {
         const running = windows.some((w) => w.appId === app.id);
@@ -52,11 +51,12 @@ export default function Dock() {
                 { label: "New Window", action: () => launch(app.id, true) },
                 { label: "Quit", danger: true, action: () => windows.filter((w) => w.appId === app.id).forEach((w) => closeWindow(w.id)) },
               ]); }}
-              className="w-10 h-10 grid place-items-center rounded-[10px] text-[rgba(244,244,245,.72)] hover:bg-[rgba(255,255,255,.08)] hover:text-white transition-all"
-              style={{ transform: `scale(${(mag[app.id] || 1).toFixed(3)})` }}>
+              className="relative w-8 h-8 grid place-items-center text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-all"
+              style={{ transform: `scale(${Math.max(1, (mag[app.id] || 1) * 0.85).toFixed(3)})` }}>
+              <i className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-[3px] h-0 group-hover:h-5 bg-[var(--accent)] transition-all" />
               <Icon size={20} />
             </button>
-            {running && <i className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#7c9cff]" />}
+            {running && <i className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[var(--accent)]" />}
           </div>
         );
       })}

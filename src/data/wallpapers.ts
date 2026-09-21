@@ -1,5 +1,6 @@
 export interface Wallpaper { name: string; css: string; animated?: boolean }
 export const WALLPAPERS: Wallpaper[] = [
+  { name: "grid", css: "linear-gradient(rgba(0,255,156,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,156,.05) 1px, transparent 1px), radial-gradient(120% 100% at 50% 0%, #0a0f0c 0%, #050507 70%)", animated: false },
   { name: "void", css: "radial-gradient(1200px 800px at 70% 20%, #17171c 0%, #0e0e10 60%)" },
   { name: "ember", css: "linear-gradient(160deg, #0e0e10 0%, #1c1214 55%, #241016 100%)" },
   { name: "glacier", css: "linear-gradient(200deg, #0e1116 0%, #101820 55%, #0e0e10 100%)" },

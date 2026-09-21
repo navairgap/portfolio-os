@@ -67,6 +67,15 @@ export interface SettingsState {
   powerDrain: boolean;
   widgets: { clock: boolean; weather: boolean; stats: boolean; note: boolean; now: boolean };
   aiKey: string;
+  bootFull: "first" | "always" | "never";
+  bootSound: boolean;
+  loginMatrix: boolean;
+  autoTerminal: boolean;
+  showFastfetch: boolean;
+  promptStyle: "blackarch" | "minimal" | "plain";
+  crtOverlay: boolean;
+  chromaticAberration: boolean;
+  sleepTimeout: "never" | "5" | "15" | "30";
 }
 
 export type OSPhase = "boot" | "login" | "desktop" | "shutdown";

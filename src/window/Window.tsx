@@ -12,9 +12,9 @@ import { sfx } from "../lib/audio";
 
 export default function WindowView({ win, children }: { win: WindowState; children: React.ReactNode }) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize } = useWindows();
-  const snap = useWindowSnap();
-  const drag = useWindowDrag(win.id);
-  const rs = useWindowResize(win.id, win.minWidth, win.minHeight);
+  const elRef = useRef<HTMLElement | null>(null);
+  const drag = useWindowDrag(win.id, elRef);
+  const rs = useWindowResize(win.id, elRef, win.minWidth, win.minHeight);
   const bodyRef = useRef<HTMLDivElement>(null);
   const app = APPS.find((a) => a.id === win.appId);
   const Icon = app?.icon || Square;
@@ -35,7 +35,7 @@ export default function WindowView({ win, children }: { win: WindowState; childr
         boxShadow: win.isFocused ? "0 24px 64px rgba(0,0,0,.55), 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent)" : undefined,
         willChange: win.isMinimized ? "auto" : "transform",
       }}>
-      <div className={`h-9 flex items-center gap-2 px-3 select-none touch-none ${win.isFocused ? "bg-[var(--bg-elevated)]" : "bg-[rgba(255,255,255,.03)]"}`}
+      <div className={`h-7 flex items-center gap-2 px-2 select-none touch-none border-b border-[rgba(255,255,255,.04)] ${win.isFocused ? "bg-[var(--bg-elevated)]" : "bg-[rgba(255,255,255,.02)]"}`}
         {...drag} onDoubleClick={() => win.isResizable && toggleMaximize(win.id)}
         onContextMenu={(e) => { e.preventDefault(); openContextMenu(e.clientX, e.clientY, [
           { label: "Minimize", action: () => minimizeWindow(win.id) },
@@ -43,16 +43,16 @@ export default function WindowView({ win, children }: { win: WindowState; childr
           { label: "Close", danger: true, action: () => { sfx.close(); closeWindow(win.id); } },
         ]); }}>
         <Icon size={15} className="text-[rgba(244,244,245,.72)]" />
-        <span className="text-[13px] font-semibold text-[#f4f4f5] flex-1 truncate">{win.title}</span>
+        <span className={`text-[11px] font-semibold uppercase tracking-[.08em] flex-1 truncate ${win.isFocused ? "text-[var(--accent)]" : "text-[var(--text-tertiary)]"}`}>{win.title}</span>
         <div className="flex items-center gap-1">
           <button aria-label="minimize" onClick={() => minimizeWindow(win.id)}
-            className="w-6 h-6 grid place-items-center rounded-[5px] text-[rgba(244,244,245,.62)] hover:bg-[rgba(255,255,255,.1)]"><Minus size={13} /></button>
+            className="w-7 h-7 grid place-items-center text-[13px] text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors">─</button>
           {win.isResizable && (
             <button aria-label="maximize" onClick={() => toggleMaximize(win.id)}
-              className="w-6 h-6 grid place-items-center rounded-[5px] text-[rgba(244,244,245,.62)] hover:bg-[rgba(255,255,255,.1)]"><Square size={11} /></button>
+              className="w-7 h-7 grid place-items-center text-[12px] text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors">□</button>
           )}
           <button aria-label="close" onClick={() => { sfx.close(); closeWindow(win.id); }}
-            className="w-6 h-6 grid place-items-center rounded-[5px] text-[rgba(244,244,245,.62)] hover:bg-[#ff5c5c] hover:text-white"><X size={13} /></button>
+            className="w-7 h-7 grid place-items-center text-[14px] text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors">×</button>
         </div>
       </div>
       <div ref={bodyRef} className="flex-1 overflow-hidden relative" onPointerDown={() => !win.isFocused && focusWindow(win.id)}>

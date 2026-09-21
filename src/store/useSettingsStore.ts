@@ -31,6 +31,15 @@ export const useSettings = create<SettingsState & { set: (p: Partial<SettingsSta
       powerDrain: true,
       widgets: { clock: true, weather: true, stats: false, note: true, now: false },
       aiKey: "",
+      bootFull: "first",
+      bootSound: true,
+      loginMatrix: true,
+      autoTerminal: true,
+      showFastfetch: true,
+      promptStyle: "blackarch",
+      crtOverlay: true,
+      chromaticAberration: true,
+      sleepTimeout: "never",
       set: (p) => set(p),
     }),
     { name: "os.settings" }
@@ -50,4 +59,8 @@ export function applySettings(s: SettingsState) {
   r.style.filter = filters.join(" ");
   (r.style as any).zoom = s.scale / 100;
   r.classList.toggle("no-anim", !s.animations);
+  let crt = document.getElementById("crt-overlay");
+  if (s.crtOverlay) {
+    if (!crt) { crt = document.createElement("div"); crt.id = "crt-overlay"; document.body.appendChild(crt); }
+  } else crt?.remove();
 }
