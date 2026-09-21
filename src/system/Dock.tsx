@@ -10,6 +10,12 @@ import { sfx } from "../lib/audio";
 export default function Dock() {
   const { windows, openWindow, focusWindow, minimizeWindow, closeWindow, activeWorkspace } = useWindows();
   const [hover, setHover] = useState<string | null>(null);
+  const [mag, setMag] = useState<Record<string, number>>({});
+  const onMove = (id: string) => (e: React.MouseEvent) => {
+    const el = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const d0 = Math.abs(e.clientY - (el.top + el.height / 2));
+    setMag((m) => ({ ...m, [id]: Math.max(0, 1.45 - d0 / 90) }));
+  };
 
   const launch = (appId: string, newWindow = false) => {
     const app = APPS.find((a) => a.id === appId)!;
@@ -34,7 +40,7 @@ export default function Dock() {
         const running = windows.some((w) => w.appId === app.id);
         const Icon = app.icon;
         return (
-          <div key={app.id} className="relative group" onMouseEnter={() => setHover(app.id)} onMouseLeave={() => setHover(null)}>
+          <div key={app.id} className="relative group" onMouseEnter={() => setHover(app.id)} onMouseLeave={() => setHover(null)} onMouseMove={onMove(app.id)}>
             {hover === app.id && (
               <div className="absolute left-[52px] top-1/2 -translate-y-1/2 px-2 py-1 rounded-[6px] bg-[rgba(24,24,27,.95)] border border-[rgba(255,255,255,.08)] text-[12px] text-[#f4f4f5] whitespace-nowrap z-50">{app.title}</div>
             )}
@@ -46,7 +52,8 @@ export default function Dock() {
                 { label: "New Window", action: () => launch(app.id, true) },
                 { label: "Quit", danger: true, action: () => windows.filter((w) => w.appId === app.id).forEach((w) => closeWindow(w.id)) },
               ]); }}
-              className="w-10 h-10 grid place-items-center rounded-[10px] text-[rgba(244,244,245,.72)] hover:bg-[rgba(255,255,255,.08)] hover:text-white hover:scale-[1.15] transition-all">
+              className="w-10 h-10 grid place-items-center rounded-[10px] text-[rgba(244,244,245,.72)] hover:bg-[rgba(255,255,255,.08)] hover:text-white transition-all"
+              style={{ transform: `scale(${(mag[app.id] || 1).toFixed(3)})` }}>
               <Icon size={20} />
             </button>
             {running && <i className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#7c9cff]" />}

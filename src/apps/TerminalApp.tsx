@@ -181,6 +181,7 @@ export default function TerminalApp({ win }: { win: WindowState }) {
           break;
         }
         case "cowsay": out(COW(ps.join(" ") || "moo")); break;
+        case "uwu": out((ps.join(" ") || "hello").replace(/[rl]/g, "w").replace(/[RL]/g, "W") + " uwu"); break;
         case "fortune": out(QUOTES[Math.floor(Math.random() * QUOTES.length)]); break;
         case "theme": if (ps[0] === "dark" || ps[0] === "light") { settings.set({ theme: ps[0] as any }); out(`theme set to ${ps[0]}`); } else out(`usage: theme <${CYAN}dark${RESET}|${CYAN}light${RESET}>`); break;
         case "wallpaper": { const n = parseInt(ps[0]); if (n >= 1 && n <= WALLPAPERS.length) { settings.set({ wallpaper: n - 1 }); out(`wallpaper set to ${YELLOW}${WALLPAPERS[n - 1].name}${RESET}`); } else out(`usage: wallpaper <1-${WALLPAPERS.length}>`); break; }
@@ -210,7 +211,7 @@ export default function TerminalApp({ win }: { win: WindowState }) {
       else if (code === 12) { term.clear(); prompt(); }
       else if (code === 3) { term.write("^C\r\n"); input = ""; prompt(); }
       else if (code === 9) {
-        const cmds = ["help","clear","ls","cd","pwd","cat","echo","mkdir","touch","rm","tree","df","free","env","hostname","id","whoami","date","uptime","uname","neofetch","history","exit","open","projects","contact","about","sudo","matrix","cowsay","fortune","theme","wallpaper","shutdown","reboot"];
+        const cmds = ["help","clear","ls","cd","pwd","cat","echo","mkdir","touch","rm","tree","df","free","env","hostname","id","whoami","date","uptime","uname","neofetch","history","exit","open","projects","contact","about","sudo","matrix","cowsay","uwu","fortune","theme","wallpaper","shutdown","reboot"];
         if (!input.includes(" ")) {
           const m = cmds.filter((c) => c.startsWith(input));
           if (m.length === 1) { term.write(m[0].slice(input.length) + " "); input = m[0] + " "; }

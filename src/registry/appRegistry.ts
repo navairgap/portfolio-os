@@ -1,5 +1,5 @@
 import { lazy, type ComponentType } from "react";
-import { Folder, TerminalSquare, FileText, Code2, Globe, Mail, Settings, Calculator, StickyNote, Image as ImageIcon, FileBox, Trash2, Info, Activity, ListChecks, Music2, BookOpen, MessagesSquare } from "lucide-react";
+import { Folder, TerminalSquare, BarChart3, FileText, Code2, Globe, Mail, Settings, Calculator, StickyNote, Image as ImageIcon, FileBox, Trash2, Info, Activity, ListChecks, Music2, BookOpen, MessagesSquare } from "lucide-react";
 import type { AppDefinition } from "../types";
 
 const L = (loader: () => Promise<{ default: ComponentType<any> }>) => lazy(loader);
@@ -17,6 +17,7 @@ export const APPS: AppDefinition[] = [
   { id: "notes", title: "Notes", icon: StickyNote, component: L(() => import("../apps/NotesApp")), defaultSize: { width: 620, height: 460 }, minSize: { width: 420, height: 300 }, resizable: true },
   { id: "image", title: "Image Viewer", icon: ImageIcon, component: L(() => import("../apps/ImageViewerApp")), defaultSize: { width: 560, height: 480 }, minSize: { width: 360, height: 300 }, resizable: true },
   { id: "document", title: "Document Viewer", icon: FileBox, component: L(() => import("../apps/DocumentViewerApp")), defaultSize: { width: 760, height: 600 }, minSize: { width: 560, height: 420 }, resizable: true },
+  { id: "algoviz", title: "Algorithm Visualizer", icon: BarChart3, component: L(() => import("../apps/AlgoViz/AlgorithmVisualizerApp")), defaultSize: { width: 780, height: 560 }, minSize: { width: 560, height: 400 }, resizable: true },
   { id: "system-monitor", title: "System Monitor", icon: Activity, component: L(() => import("../apps/SystemMonitor/SystemMonitorApp")), defaultSize: { width: 780, height: 520 }, minSize: { width: 560, height: 380 }, resizable: true },
   { id: "task-manager", title: "Task Manager", icon: ListChecks, component: L(() => import("../apps/TaskManager/TaskManagerApp")), defaultSize: { width: 500, height: 400 }, minSize: { width: 500, height: 400 }, resizable: false },
   { id: "music", title: "Music", icon: Music2, component: L(() => import("../apps/Music/MusicApp")), defaultSize: { width: 720, height: 480 }, minSize: { width: 560, height: 400 }, resizable: true },
