@@ -10,6 +10,7 @@ import { restoreSession } from "./store/useWindowStore";
 import type { OSPhase } from "./types";
 import LockScreen from "./features/lockScreen/LockScreen";
 import RecoveryShell from "./features/recovery/RecoveryShell";
+import ErrorBoundary from "./system/ErrorBoundary";
 
 export default function App() {
   const { phase, setPhase } = useSession();
@@ -57,6 +58,7 @@ export default function App() {
   }, [setPhase]);
 
   return (
+    <ErrorBoundary>
     <div className="h-full w-full overflow-hidden select-none" style={{ background: "var(--bg-base)", color: "var(--text-primary)", fontFamily: "Inter, system-ui, sans-serif" }}>
       <AnimatePresence>
         {phase === "boot" && <BootSequence key="boot" onDone={onBootDone} />}
@@ -71,5 +73,6 @@ export default function App() {
       {phase === "shutdown" && <ShutdownScreen mode="shutdown" onReboot={reboot} />}
       {phase === "restart" && <ShutdownScreen mode="restart" onReboot={reboot} />}
     </div>
+    </ErrorBoundary>
   );
 }

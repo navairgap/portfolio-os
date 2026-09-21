@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { useSettings } from "../store/useSettingsStore";
 import { tzClock } from "../features/lockScreen/LockScreen";
 
-function useClock(showSeconds: boolean, hour12: boolean) {
+function useClock(s: { hour12: boolean; showSeconds: boolean; timezone: string }) {
   const [now, setNow] = useState(new Date());
-  useState(() => {
+  useEffect(() => {
     const i = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(i);
-  });
-  const time = tzClock({ hour12, showSeconds, timezone } as any, now);
-  const date = now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }, []);
+  const time = tzClock(s, now);
+  const date = now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: s.timezone });
   return { time, date };
 }
 
 export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const { showSeconds, hour12, displayName, avatar, timezone } = useSettings();
-  const { time, date } = useClock(showSeconds, hour12);
+  const { time, date } = useClock({ hour12, showSeconds, timezone });
   const [pw, setPw] = useState("");
   const [leaving, setLeaving] = useState(false);
 
