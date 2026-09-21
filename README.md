@@ -83,3 +83,34 @@ MIT — content and design © 2026 navairgap.
 - **Feature 14 (guestbook)**: ships in demo mode. Point `src/apps/Guestbook/GuestbookApp.tsx` at Supabase/Firebase to persist.
 - **Feature 15 (telemetry)**: deploy `server/telemetry/` to Vercel with a KV binding; otherwise the local counter is shown.
 - **Feature 16 (AI)**: paste an OpenAI key in Settings → About This System → AI Assistant.
+
+## Office Computer Integration
+
+The 3D room renders the Sketchfab "Office Computer" model (author: sebodeweb) from
+`public/models/office-computer.glb` — a wooden desk with right-side hutch, a rolling
+mesh-back office chair (node group `SANDALI`), a CRT monitor, keyboard, mouse, a black
+PC tower, and a printer on the lower cabinet shelf. The model ships with a baked-in
+Windows 7 wallpaper; the loader replaces the screen area with a black plane at runtime.
+
+**How the screen mesh is identified** (no hardcoded positions): after `useGLTF` loads,
+`OfficeRoom` traverses the scene and picks the monitor as the tallest *taller-than-wide*
+mesh outside the chair group in the upper half of the scene — verified against the
+model's actual AABBs (monitor ≈ 22×41×48 cm at the back-left of the desk). The screen
+plane is then placed on the monitor's world-space front face, oriented toward the chair
+center, with `<Html transform occlude>` mounting the live OS preview just in front.
+
+**Interaction model**: the OS runs fullscreen (full input fidelity — drag, terminal,
+launcher, session restore all unchanged); the CRT shows a live read-only mirror of the
+real window store. Click the monitor (or press R / ◈) to move between the room and the
+desk. Camera: desk view sits above/behind the chair with ±3° mouse look and an idle
+breathing bob after 5s; V/C pulls back to room view (800ms ease `[0.4,0,0.2,1]`).
+
+**Swapping the model later**: drop a new GLB into `public/models/`, keep the name (or
+update `useGLTF` path), and if its monitor is named anything readable, add the name to
+the chair/monitor heuristics in `src/room/OfficeRoom.tsx`.
+
+Fallbacks: low-power devices (`hardwareConcurrency ≤4` / `deviceMemory ≤4`) and
+reduced-motion skip the room entirely (CSS CRT fullscreen); WebGL failure exits to the
+desktop. Post stack (Bloom/ChromaticAberration/Vignette/Noise) disables on
+reduced-motion. ACESFilmic tone mapping, exposure 1.2, FogExp2, single shadow-casting
+lamp, DPR ≤ 1.5.
