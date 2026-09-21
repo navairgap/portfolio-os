@@ -45,3 +45,11 @@ button { font-family: inherit; }
   #resume-doc, #resume-doc * { visibility: visible !important; }
   #resume-doc { position: fixed; inset: 0; width: 100%; border-radius: 0; }
 }
+
+/* slow wallpaper drift */
+.wp-drift { animation: wpdrift 50s ease-in-out infinite alternate; }
+@keyframes wpdrift {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.05) translate(1%, -1%); }
+  100% { transform: scale(1.02) translate(-1%, 1%); }
+}

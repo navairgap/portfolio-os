@@ -44,8 +44,9 @@ export default function App() {
 
   return (
     <div className="h-full w-full overflow-hidden select-none" style={{ background: "var(--bg-base)", color: "var(--text-primary)", fontFamily: "Inter, system-ui, sans-serif" }}>
-      {phase === "boot" && (!s.skipBoot || !bootedOnce) && <BootSequence onDone={onBootDone} />}
-      {(phase === "boot" && s.skipBoot && bootedOnce) && <BootSequence onDone={onBootDone} />}
+      <AnimatePresence>
+        {phase === "boot" && <BootSequence key="boot" onDone={onBootDone} />}
+      </AnimatePresence>
       <AnimatePresence>
         {phase === "login" && <LoginScreen key="login" onLogin={onLogin} />}
       </AnimatePresence>

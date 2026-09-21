@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 const POST = [
   "NAVAIRGAP BIOS v2.4.1",
@@ -83,7 +84,8 @@ export default function BootSequence({ onDone }: { onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div className="fixed inset-0 bg-black text-[#f4f4f5] font-mono text-[13px] z-[200]" onClick={() => !skip.current && (skip.current = true) || onDone()}>
+    <motion.div exit={{ opacity: 0 }} transition={{ duration: .5 }}
+      className="fixed inset-0 bg-black text-[#f4f4f5] font-mono text-[13px] z-[200]" onClick={() => !skip.current && (skip.current = true) || onDone()}>
       {phase < 2 && (
         <div className="absolute left-6 top-6">
           {lines.slice(0, phase === 0 ? undefined : POST.length).map((l, i) => (
@@ -108,6 +110,6 @@ O S`}</pre>
           <span className="animate-pulse text-[#f4f4f5]">_</span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

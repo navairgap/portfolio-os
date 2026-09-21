@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useWindows } from "../store/useWindowStore";
 import { APPS } from "../registry/appRegistry";
 import { openContextMenu } from "./ContextMenu";
@@ -23,7 +24,8 @@ export default function Dock() {
   };
 
   return (
-    <div className="fixed left-3 top-1/2 -translate-y-1/2 z-[105] flex flex-col gap-2 p-2 rounded-[16px] w-[64px]"
+    <motion.div initial={{ x: -70, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 200, damping: 22, delay: .25 }}
+      className="fixed left-3 top-1/2 -translate-y-1/2 z-[105] flex flex-col gap-2 p-2 rounded-[16px] w-[64px]"
       style={{ background: "var(--bg-overlay)", backdropFilter: "blur(20px)", border: "1px solid var(--border-subtle)" }}
       role="toolbar" aria-label="dock">
       {APPS.map((app) => {
@@ -47,6 +49,6 @@ export default function Dock() {
           </div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

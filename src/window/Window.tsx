@@ -30,7 +30,9 @@ export default function WindowView({ win, children }: { win: WindowState; childr
         ${win.isFocused ? "shadow-[0_20px_60px_rgba(0,0,0,.5)]" : "shadow-[0_10px_30px_rgba(0,0,0,.35)]"}`}
       style={{
         left: win.x, top: win.y, width: win.width, height: win.isMaximized ? "calc(100vh - 32px)" : win.height,
-        zIndex: win.zIndex, background: "var(--bg-surface)", border: "1px solid var(--border-subtle)",
+        zIndex: win.zIndex, background: "var(--bg-surface)",
+        border: `1px solid ${win.isFocused ? "color-mix(in srgb, var(--accent) 45%, transparent)" : "var(--border-subtle)"}`,
+        boxShadow: win.isFocused ? "0 24px 64px rgba(0,0,0,.55), 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent)" : undefined,
         willChange: win.isMinimized ? "auto" : "transform",
       }}>
       <div className={`h-9 flex items-center gap-2 px-3 select-none touch-none ${win.isFocused ? "bg-[var(--bg-elevated)]" : "bg-[rgba(255,255,255,.03)]"}`}
