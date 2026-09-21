@@ -77,11 +77,9 @@ export default function App() {
 
       {phase === "desktop" && <Desktop />}
       {phase === "desktop" && roomView && (
-        <RoomBoundary onExit={() => setRoomView(false)}>
-          <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
-            <Room onEnter={() => setRoomView(false)} />
-          </Suspense>
-        </RoomBoundary>
+        <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
+          <Room onEnter={() => setRoomView(false)} />
+        </Suspense>
       )}
       {phase === "lock" && <Desktop />}
       {phase === "lock" && <LockScreen />}
