@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Palette, Monitor, Volume2, Wifi, User, Clock, Bell, Keyboard, HardDrive, Info, Power } from "lucide-react";
 import { useSettings } from "../store/useSettingsStore";
+import { useFS } from "../store/useFileSystemStore";
 import { useNotifications } from "../store/useNotificationStore";
 import { WALLPAPERS } from "../data/wallpapers";
 import { sfx } from "../lib/audio";
+import { pickFile } from "../system/FilePicker";
 import type { WindowState } from "../types";
 
 const SHORTCUTS: [string, string][] = [
@@ -39,6 +41,7 @@ export default function SettingsApp({ win }: { win: WindowState }) {
   const s = useSettings();
   const [tab, setTab] = useState<string>((win.props.tab as string) || "appearance");
   const { list, clear } = useNotifications();
+  const useFS_any = useFS;
   const [repos, setRepos] = useState<number | null>(null);
   const [speed, setSpeed] = useState<number | null>(null);
 
@@ -153,8 +156,12 @@ export default function SettingsApp({ win }: { win: WindowState }) {
             <div className="w-14 h-14 rounded-full bg-[#232328] border border-[rgba(255,255,255,.16)] grid place-items-center overflow-hidden">
               {s.avatar ? <img src={s.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-[22px] text-[#7c9cff] font-semibold">n</span>}
             </div>
+            <button onClick={async () => { const p = await pickFile({ accept: "image" }); if (p) { const c = useFS.getState().get(p)?.content; if (c) s.set({ avatar: c }); } }}
+              className="px-3 py-1.5 rounded-[6px] bg-[rgba(255,255,255,.08)] text-[12px] hover:bg-[rgba(255,255,255,.14)]">
+              choose from Files
+            </button>
             <label className="px-3 py-1.5 rounded-[6px] bg-[rgba(255,255,255,.08)] text-[12px] cursor-pointer hover:bg-[rgba(255,255,255,.14)]">
-              change avatar
+              upload
               <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                 const f = e.target.files?.[0]; if (!f) return;
                 const r = new FileReader(); r.onload = () => s.set({ avatar: String(r.result) }); r.readAsDataURL(f);

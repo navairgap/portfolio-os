@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { marked } from "marked";
 import { Save, FolderOpen, FilePlus, Eye, Pencil } from "lucide-react";
+import MarkdownView from "../system/MarkdownView";
+import { pickFile } from "../system/FilePicker";
 import { useFS } from "../store/useFileSystemStore";
 import { openApp } from "../system/DesktopIcons";
 import type { WindowState } from "../types";
@@ -38,7 +40,7 @@ export default function EditorApp({ win }: { win: WindowState }) {
     <div className="h-full flex flex-col text-[13px] text-[#f4f4f5]">
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[rgba(255,255,255,.08)]">
         <button onClick={() => setTabs((ts) => [...ts, { path: "/home/navairgap/untitled.md", content: "", saved: "" }])} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)]" title="new"><FilePlus size={14} /></button>
-        <button onClick={() => openApp("files", { path: "/home/navairgap" })} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)]" title="open"><FolderOpen size={14} /></button>
+        <button onClick={async () => { const p = await pickFile(); if (p) openApp("editor", { path: p }, p.split("/").pop()!); }} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)]" title="open file…"><FolderOpen size={14} /></button>
         <button onClick={save} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)]" title="save (ctrl+s)"><Save size={14} /></button>
         {isMd && (
           <button onClick={() => setPreview(!preview)} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)] ml-2" title="toggle preview">
@@ -58,7 +60,7 @@ export default function EditorApp({ win }: { win: WindowState }) {
       </div>
       <div className="flex-1 overflow-hidden relative">
         {preview ? (
-          <div className="h-full overflow-auto p-4 prose-invert" dangerouslySetInnerHTML={{ __html: html }} style={{ color: "#f4f4f5" }} />
+          <div className="h-full overflow-auto p-4"><MarkdownView md={tab.content} /></div>
         ) : (
           <textarea value={tab.content} onChange={(e) => setTab({ content: e.target.value })} spellCheck={false}
             className="w-full h-full bg-transparent p-3 resize-none focus:outline-none font-mono text-[13px] leading-[1.6] text-[#f4f4f5]" />

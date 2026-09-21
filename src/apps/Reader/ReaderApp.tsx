@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { marked } from "marked";
+import MarkdownView from "../../system/MarkdownView";
 import { Share2, FilePlus } from "lucide-react";
 import { useFS } from "../../store/useFileSystemStore";
 import { openApp } from "../../system/DesktopIcons";
@@ -73,8 +73,7 @@ export default function ReaderApp() {
             </div>
             <button onClick={share} className="p-1.5 rounded hover:bg-[rgba(255,255,255,.08)]" title="share"><Share2 size={14} /></button>
           </div>
-          <div className="prose-invert max-w-2xl text-[13.5px] leading-[1.75] text-[rgba(244,244,245,.88)]"
-            dangerouslySetInnerHTML={{ __html: marked.parse(cur.body, { async: false }) }} />
+          <MarkdownView md={cur.body} className="max-w-2xl" />
         </>) : null}
       </div>
     </div>

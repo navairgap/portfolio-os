@@ -9,6 +9,7 @@ import { sfx } from "../lib/audio";
 import { useBatteryDrain } from "../features/battery/useBatteryDrain";
 import VoiceHUD, { voiceSupported } from "../features/voice/VoiceCommandHUD";
 import { tzClock } from "../features/lockScreen/LockScreen";
+import { useNotifPanel } from "./NotificationsPanel";
 
 function Clock({ onClick }: { onClick: () => void }) {
   const s = useSettings();
@@ -90,7 +91,7 @@ export default function TopBar() {
         <button onClick={() => setMenu(menu === "battery" ? null : "battery")} className="text-[rgba(244,244,245,.62)] hover:text-white flex items-center gap-1" aria-label="battery">
           <Battery size={14} /><span className="text-[11px]">{bat.level}%</span>
         </button>
-        <button onClick={() => setMenu(menu === "bell" ? null : "bell")} className="relative text-[rgba(244,244,245,.62)] hover:text-white" aria-label="notifications">
+        <button onClick={() => useNotifPanel.getState().set(true)} className="relative text-[rgba(244,244,245,.62)] hover:text-white" aria-label="notification center">
           <Bell size={14} />
           {list.length > 0 && <i className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#ff5c5c]" />}
         </button>
@@ -119,18 +120,6 @@ export default function TopBar() {
         <div className="px-3 py-3 text-[13px]">{bat.level}% — {bat.plugged ? "plugged in" : bat.status.toLowerCase()}</div>
         <div className="px-3 pb-2"><div className="h-2 rounded bg-[rgba(255,255,255,.12)]"><div className={`h-full rounded ${bat.level <= 20 ? "bg-[#fbbf24]" : bat.level <= 10 ? "bg-[#ff5c5c]" : "bg-[#4ade80]"}`} style={{ width: bat.level + "%" }} /></div></div>
         <button className={itemCls} onClick={() => bat.setPlugged(!bat.plugged)}>{bat.plugged ? "Unplug" : "Plug in"}</button>
-      </div>}
-      {menu === "bell" && <div className={menuCls} style={{ right: 30 }}>
-        <div className="flex items-center justify-between px-3 py-2">
-          <span className="text-[13px] font-semibold">Notifications</span>
-          <button onClick={clear} className="text-[12px] text-[rgba(244,244,245,.62)] hover:text-white">clear all</button>
-        </div>
-        {list.length === 0 && <div className="px-3 pb-3 text-[12px] text-[rgba(244,244,245,.38)]">No notifications</div>}
-        {list.slice(0, 8).map((n) => (
-          <button key={n.id} className={itemCls} onClick={() => { useNotifications.getState().dismiss(n.id); setMenu(null); const w = windows.find((w) => w.appId === n.appId); if (w) focusWindow(w.id); }}>
-            <span className="flex-1"><b className="block text-[12.5px]">{n.title}</b><span className="text-[12px] text-[rgba(244,244,245,.62)]">{n.body}</span></span>
-          </button>
-        ))}
       </div>}
       {menu === "power" && <div className={menuCls}>
         <button className={itemCls} onClick={() => power("lock")}><Lock size={14} /> Lock</button>

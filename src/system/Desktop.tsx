@@ -21,6 +21,9 @@ import BSOD from "../features/bsod/BSOD";
 import MatrixRain from "../features/matrix/MatrixRain";
 import { mountShaderWallpaper, stopShaderWallpaper } from "../lib/wallpaper/shaderWallpaper";
 import { useNotifications } from "../store/useNotificationStore";
+import WelcomeModal from "./WelcomeModal";
+import FilePicker from "./FilePicker";
+import NotificationsPanel from "./NotificationsPanel";
 
 export default function Desktop() {
   const s = useSettings();
@@ -31,18 +34,15 @@ export default function Desktop() {
   useEffect(() => { applySettings(s); }, [s]);
   useEffect(() => {
     if (s.startupSound && !localStorage.getItem("os.chimed")) { sfx.startup(); localStorage.setItem("os.chimed", "1"); }
-    if (!localStorage.getItem("os.welcomed")) {
-      setTimeout(() => {
-        useNotifications.getState().push({ appId: "about", title: "Welcome to navairgap OS", body: "This is a working desktop. Drag windows. Open apps. Right-click everything." });
-        openApp("about", {}, "Welcome to navairgap OS");
-        localStorage.setItem("os.welcomed", "1");
-      }, 700);
+    if (!localStorage.getItem("os.welcomed") && !localStorage.getItem("os.welcomed.never")) {
+      setTimeout(() => setShowWelcome(true), 700);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const wp = WALLPAPERS[s.wallpaper] || WALLPAPERS[0];
   const [bsod, setBsod] = useState(false);
+  const [welcome, setShowWelcome] = useState(false);
   const [matrixWp, setMatrixWp] = useState(false);
   useEffect(() => {
     addEventListener("os-bsod", () => setBsod(true));
@@ -87,6 +87,9 @@ export default function Desktop() {
       <AppLauncher />
       <WorkspaceOverview />
       <ScreenshotTool />
+      <FilePicker />
+      <NotificationsPanel />
+      {welcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
       {matrixWp && <MatrixRain onPrompt={(set) => { setMatrixWp(false); if (set) useSettings.getState().set({ wallpaper: 9 }); }} />}
       {bsod && <BSOD onDone={() => setBsod(false)} />}
     </div>
