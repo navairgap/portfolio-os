@@ -58,7 +58,9 @@ export default function App() {
       if ((e.key === "r" || e.key === "R") && useSession.getState().phase === "desktop" && !e.ctrlKey && !e.metaKey && !(e.target as HTMLElement)?.closest("input,textarea")) setRoomView((v) => !v);
     };
     addEventListener("keydown", h);
-    return () => removeEventListener("keydown", h);
+    const t = () => setRoomView((v) => !v);
+    addEventListener("os-room", t);
+    return () => { removeEventListener("keydown", h); removeEventListener("os-room", t); };
   }, []);
   const reboot = useCallback(() => {
     localStorage.removeItem("os.session");

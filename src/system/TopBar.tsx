@@ -45,6 +45,13 @@ export default function TopBar() {
   const { menu, setMenu, setLauncherOpen, setOverviewOpen, setPhase } = useSession();
   const { list, clear } = useNotifications();
   const bat = useBatteryDrain();
+  useEffect(() => {
+    if (!localStorage.getItem("os.roomhint")) {
+      localStorage.setItem("os.roomhint", "1");
+      setTimeout(() => useNotifications.getState().push({ appId: "about", title: "3D room available", body: "press R or the ◈ button in the top bar" }), 2500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const focused = windows.find((w) => w.isFocused && !w.isMinimized);
   const focusedApp = focused ? APPS.find((a) => a.id === focused.appId) : null;
   const [cal, setCal] = useState(false);
@@ -91,6 +98,8 @@ export default function TopBar() {
         <button onClick={() => setMenu(menu === "battery" ? null : "battery")} className="text-[rgba(244,244,245,.62)] hover:text-white flex items-center gap-1" aria-label="battery">
           <Battery size={14} /><span className="text-[11px]">{bat.level}%</span>
         </button>
+        <button onClick={() => dispatchEvent(new Event("os-room"))} title="3D room (R)" aria-label="toggle 3D room"
+          className="text-[var(--text-tertiary)] hover:text-[var(--accent)] transition-colors text-[12px]">◈</button>
         <button onClick={() => useNotifPanel.getState().set(true)} className="relative text-[rgba(244,244,245,.62)] hover:text-white" aria-label="notification center">
           <Bell size={14} />
           {list.length > 0 && <i className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#ff5c5c]" />}
