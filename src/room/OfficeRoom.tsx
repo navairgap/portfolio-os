@@ -3,6 +3,8 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
+const MODEL_URL = (import.meta as any).env?.BASE_URL + "models/office-computer.glb";
+
 // Identifies meshes at runtime from world transforms (no hardcoded positions).
 interface Found {
   monitor: THREE.Mesh | null;
@@ -51,7 +53,7 @@ function analyze(scene: THREE.Object3D): Found {
 }
 
 export default function OfficeRoom({ children }: { children: (f: Found) => React.ReactNode }) {
-  const { scene } = useGLTF("/models/office-computer.glb");
+  const { scene } = useGLTF(MODEL_URL);
   const wrap = useRef<THREE.Group>(null);
   const [norm, setNorm] = useState<{ pos: [number, number, number]; scale: number } | null>(null);
   const found = useMemo(() => analyze(scene), [scene]);
@@ -79,4 +81,4 @@ export default function OfficeRoom({ children }: { children: (f: Found) => React
     </group>
   );
 }
-useGLTF.preload("/models/office-computer.glb");
+useGLTF.preload(MODEL_URL);

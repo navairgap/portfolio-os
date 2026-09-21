@@ -18,11 +18,14 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
   const [mode, setMode] = useState<"desk" | "room">("desk");
   const lowPower = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
   useEffect(() => {
+    if (lowPower) onEnter();
+  }, [lowPower, onEnter]);
+  useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === "v" || e.key === "V" || e.key === "c" || e.key === "C") setMode((m) => (m === "desk" ? "room" : "desk")); };
     addEventListener("keydown", h);
     return () => removeEventListener("keydown", h);
   }, []);
-  if (lowPower) { onEnter(); return null; }
+  if (lowPower) return null;
   return (
     <div className="fixed inset-0 z-[120] bg-black">
       <Canvas
