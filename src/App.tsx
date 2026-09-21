@@ -10,6 +10,8 @@ import type { OSPhase } from "./types";
 import LockScreen from "./features/lockScreen/LockScreen";
 import RecoveryShell from "./features/recovery/RecoveryShell";
 import ErrorBoundary from "./system/ErrorBoundary";
+import { lazy, Suspense, useState } from "react";
+const Room = lazy(() => import("./room/Room"));
 
 export default function App() {
   const { phase, setPhase } = useSession();
@@ -50,6 +52,14 @@ export default function App() {
     setPhase("desktop");
   }, [setPhase]);
 
+  const [roomView, setRoomView] = useState(false);
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.key === "r" || e.key === "R") && useSession.getState().phase === "desktop" && !e.ctrlKey && !e.metaKey && !(e.target as HTMLElement)?.closest("input,textarea")) setRoomView((v) => !v);
+    };
+    addEventListener("keydown", h);
+    return () => removeEventListener("keydown", h);
+  }, []);
   const reboot = useCallback(() => {
     localStorage.removeItem("os.session");
     setPhase("boot");
@@ -63,6 +73,11 @@ export default function App() {
       </AnimatePresence>
 
       {phase === "desktop" && <Desktop />}
+      {phase === "desktop" && roomView && (
+        <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
+          <Room onEnter={() => setRoomView(false)} />
+        </Suspense>
+      )}
       {phase === "lock" && <Desktop />}
       {phase === "lock" && <LockScreen />}
       {phase === "recovery" && <RecoveryShell onExit={() => setPhase("boot")} />}
