@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useWindows } from "../store/useWindowStore";
 import { APPS } from "../registry/appRegistry";
+import { isInstalled } from "../lib/packages/packageManager";
+import { useFileDrag, compatible, dropOnApp } from "../features/dragToOpen/useDragToOpen";
 import { openContextMenu } from "./ContextMenu";
 import { sfx } from "../lib/audio";
 
@@ -28,7 +30,7 @@ export default function Dock() {
       className="fixed left-3 top-1/2 -translate-y-1/2 z-[105] flex flex-col gap-2 p-2 rounded-[16px] w-[64px]"
       style={{ background: "var(--bg-overlay)", backdropFilter: "blur(20px)", border: "1px solid var(--border-subtle)" }}
       role="toolbar" aria-label="dock">
-      {APPS.map((app) => {
+      {APPS.filter((a) => isInstalled(a.id)).map((app) => {
         const running = windows.some((w) => w.appId === app.id);
         const Icon = app.icon;
         return (
@@ -37,6 +39,8 @@ export default function Dock() {
               <div className="absolute left-[52px] top-1/2 -translate-y-1/2 px-2 py-1 rounded-[6px] bg-[rgba(24,24,27,.95)] border border-[rgba(255,255,255,.08)] text-[12px] text-[#f4f4f5] whitespace-nowrap z-50">{app.title}</div>
             )}
             <button aria-label={app.title} onClick={() => launch(app.id)}
+              onDragOver={(e) => { const p = useFileDrag.getState().path; if (p && compatible(app.id, p)) e.preventDefault(); }}
+              onDrop={(e) => { const p = useFileDrag.getState().path; if (p) { e.preventDefault(); dropOnApp(app.id, p); useFileDrag.getState().set(null); } }}
               onContextMenu={(e) => { e.preventDefault(); openContextMenu(e.clientX + 10, e.clientY, [
                 { label: "Open", action: () => launch(app.id) },
                 { label: "New Window", action: () => launch(app.id, true) },

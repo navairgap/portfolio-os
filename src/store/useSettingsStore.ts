@@ -27,6 +27,10 @@ export const useSettings = create<SettingsState & { set: (p: Partial<SettingsSta
       showSeconds: false,
       dnd: false,
       skipBoot: false,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      powerDrain: true,
+      widgets: { clock: true, weather: true, stats: false, note: true, now: false },
+      aiKey: "",
       set: (p) => set(p),
     }),
     { name: "os.settings" }

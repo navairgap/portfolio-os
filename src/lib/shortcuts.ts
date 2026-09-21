@@ -41,7 +41,7 @@ export function useGlobalShortcuts() {
       const k = e.key;
 
       konamiIdx = k === KONAMI[konamiIdx] ? konamiIdx + 1 : (k === KONAMI[0] ? 1 : 0);
-      if (konamiIdx === KONAMI.length) { konamiIdx = 0; matrixRain(); }
+      if (konamiIdx === KONAMI.length) { konamiIdx = 0; dispatchEvent(new Event("os-konami")); }
 
       if (k === "Meta") { e.preventDefault(); s.setLauncherOpen(!s.launcherOpen); return; }
       if (e.ctrlKey && k >= "1" && k <= "4") { e.preventDefault(); w.setWorkspace(+k - 1); return; }
@@ -49,7 +49,9 @@ export function useGlobalShortcuts() {
       if (e.ctrlKey && e.altKey && k.toLowerCase() === "f") { e.preventDefault(); openApp("files"); return; }
       if (e.ctrlKey && e.altKey && k.toLowerCase() === "s") { e.preventDefault(); openApp("settings"); return; }
       if (e.ctrlKey && e.shiftKey && k.toLowerCase() === "q") { e.preventDefault(); s.setMenu(s.menu === "power" ? null : "power"); return; }
-      if (e.metaKey && k.toLowerCase() === "l") { e.preventDefault(); s.setPhase("login"); return; }
+      if (e.metaKey && k.toLowerCase() === "l") { e.preventDefault(); s.setPhase("lock"); return; }
+      if (e.key === "PrintScreen" || (e.ctrlKey && e.shiftKey && k === "4")) { e.preventDefault(); dispatchEvent(new Event("os-screenshot")); return; }
+      if (e.ctrlKey && k === " ") { e.preventDefault(); dispatchEvent(new Event("os-voice")); return; }
 
       const focused = w.windows.find((x) => x.isFocused);
       if (e.altKey && k === "Tab") {

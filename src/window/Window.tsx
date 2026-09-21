@@ -13,7 +13,7 @@ import { sfx } from "../lib/audio";
 export default function WindowView({ win, children }: { win: WindowState; children: React.ReactNode }) {
   const { focusWindow, closeWindow, minimizeWindow, toggleMaximize } = useWindows();
   const snap = useWindowSnap();
-  const drag = useWindowDrag(win.id, snap);
+  const drag = useWindowDrag(win.id);
   const rs = useWindowResize(win.id, win.minWidth, win.minHeight);
   const bodyRef = useRef<HTMLDivElement>(null);
   const app = APPS.find((a) => a.id === win.appId);

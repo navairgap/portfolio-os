@@ -6,13 +6,16 @@ import { useSession } from "../store/useSessionStore";
 import { useNotifications } from "../store/useNotificationStore";
 import { APPS } from "../registry/appRegistry";
 import { sfx } from "../lib/audio";
+import { useBatteryDrain } from "../features/battery/useBatteryDrain";
+import VoiceHUD, { voiceSupported } from "../features/voice/VoiceCommandHUD";
+import { tzClock } from "../features/lockScreen/LockScreen";
 
 function Clock({ onClick }: { onClick: () => void }) {
-  const { showSeconds, hour12 } = useSettings();
+  const s = useSettings();
   const [now, setNow] = useState(new Date());
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(i); }, []);
-  const s = now.toLocaleTimeString("en-US", { hour12, hour: "2-digit", minute: "2-digit", ...(showSeconds ? { second: "2-digit" } : {}) });
-  return <button onClick={onClick} className="text-[13px] text-[#f4f4f5] hover:opacity-80">{s}</button>;
+  const offset = new Intl.DateTimeFormat("en-US", { timeZone: s.timezone, timeZoneName: "shortOffset" }).formatToParts(now).find((p) => p.type === "timeZoneName")?.value || "";
+  return <button onClick={onClick} title={`${s.timezone} (${offset})`} className="text-[13px] text-[#f4f4f5] hover:opacity-80">{tzClock(s, now)}</button>;
 }
 
 function Calendar({ onClose }: { onClose: () => void }) {
@@ -40,6 +43,7 @@ export default function TopBar() {
   const { windows, activeWorkspace, setWorkspace, focusWindow } = useWindows();
   const { menu, setMenu, setLauncherOpen, setOverviewOpen, setPhase } = useSession();
   const { list, clear } = useNotifications();
+  const bat = useBatteryDrain();
   const focused = windows.find((w) => w.isFocused && !w.isMinimized);
   const focusedApp = focused ? APPS.find((a) => a.id === focused.appId) : null;
   const [cal, setCal] = useState(false);
@@ -82,8 +86,9 @@ export default function TopBar() {
         <button onClick={() => setMenu(menu === "volume" ? null : "volume")} className="text-[rgba(244,244,245,.62)] hover:text-white" aria-label="volume">
           {s.muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>
+        {voiceSupported && <VoiceHUD />}
         <button onClick={() => setMenu(menu === "battery" ? null : "battery")} className="text-[rgba(244,244,245,.62)] hover:text-white flex items-center gap-1" aria-label="battery">
-          <Battery size={14} /><span className="text-[11px]">78%</span>
+          <Battery size={14} /><span className="text-[11px]">{bat.level}%</span>
         </button>
         <button onClick={() => setMenu(menu === "bell" ? null : "bell")} className="relative text-[rgba(244,244,245,.62)] hover:text-white" aria-label="notifications">
           <Bell size={14} />
@@ -111,8 +116,9 @@ export default function TopBar() {
         <div className="px-3 py-1 text-[12px] text-[rgba(244,244,245,.38)]">Output: portfolio-analog-stereo</div>
       </div>}
       {menu === "battery" && <div className={menuCls} style={{ right: 60 }}>
-        <div className="px-3 py-3 text-[13px]">78% — 4h 32m remaining</div>
-        <div className="px-3 pb-3"><div className="h-2 rounded bg-[rgba(255,255,255,.12)]"><div className="h-full w-[78%] rounded bg-[#4ade80]" /></div></div>
+        <div className="px-3 py-3 text-[13px]">{bat.level}% — {bat.plugged ? "plugged in" : bat.status.toLowerCase()}</div>
+        <div className="px-3 pb-2"><div className="h-2 rounded bg-[rgba(255,255,255,.12)]"><div className={`h-full rounded ${bat.level <= 20 ? "bg-[#fbbf24]" : bat.level <= 10 ? "bg-[#ff5c5c]" : "bg-[#4ade80]"}`} style={{ width: bat.level + "%" }} /></div></div>
+        <button className={itemCls} onClick={() => bat.setPlugged(!bat.plugged)}>{bat.plugged ? "Unplug" : "Plug in"}</button>
       </div>}
       {menu === "bell" && <div className={menuCls} style={{ right: 30 }}>
         <div className="flex items-center justify-between px-3 py-2">

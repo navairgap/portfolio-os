@@ -4,6 +4,7 @@ import { useFS } from "../store/useFileSystemStore";
 import { parentOf, joinPath, HOME, TRASH } from "../lib/filesystem";
 import { openApp } from "../system/DesktopIcons";
 import { openContextMenu } from "../system/ContextMenu";
+import { useFileDrag } from "../features/dragToOpen/useDragToOpen";
 import type { WindowState } from "../types";
 
 const extIcon = (name: string) => {
@@ -84,7 +85,8 @@ export default function FilesApp({ win }: { win: WindowState }) {
               const n = fs.get(p)!;
               const Icon = n.type === "folder" ? Folder : extIcon(n.name);
               return (
-                <button key={p} onDoubleClick={() => open(p)} title={n.name}
+                <button key={p} onDoubleClick={() => open(p)} title={n.name} draggable
+                  onDragStart={() => useFileDrag.getState().set(p)} onDragEnd={() => useFileDrag.getState().set(null)}
                   onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); openContextMenu(e.clientX, e.clientY, [
                     { label: "Open", action: () => open(p) },
                     { label: "Rename", action: () => { const nn = prompt("Rename to:", n.name); if (nn) fs.rename(p, nn); } },

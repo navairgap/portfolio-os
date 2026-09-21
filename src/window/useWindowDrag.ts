@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import { useWindows } from "../store/useWindowStore";
-import type { SnapZone } from "./useWindowSnap";
-import { snapRect } from "./useWindowSnap";
+import { updateSnap2, clearSnap2, zoneRect, type SnapZone2 } from "./useWindowSnap";
+import { useSnapPreview } from "../features/snapPreview/SnapPreview";
 
-export function useWindowDrag(id: string, snap: { update: (x: number, y: number) => void; clear: () => void; zoneRef: { current: SnapZone } }) {
+export function useWindowDrag(id: string) {
   const dragging = useRef(false);
+  let currentZone: SnapZone2 = null;
   const off = useRef({ dx: 0, dy: 0 });
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -20,16 +21,14 @@ export function useWindowDrag(id: string, snap: { update: (x: number, y: number)
     if (!dragging.current) return;
     const x = e.clientX - off.current.dx, y = Math.max(32, e.clientY - off.current.dy);
     useWindows.getState().moveWindow(id, x, y);
-    snap.update(e.clientX, e.clientY);
+    currentZone = updateSnap2(e.clientX, e.clientY);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (!dragging.current) return;
     dragging.current = false;
-    const r = snapRect(snap.zoneRef.current);
-    snap.clear();
-    if (r) {
-      useWindows.getState().resizeWindow(id, r.x, r.y, r.width, r.height);
-    }
+    const r = zoneRect(currentZone);
+    clearSnap2();
+    if (r) useWindows.getState().resizeWindow(id, r.x, r.y, r.width, r.height);
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
   };
   return { onPointerDown, onPointerMove, onPointerUp };

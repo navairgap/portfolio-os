@@ -7,6 +7,8 @@ import { joinPath, HOME, parentOf } from "../lib/filesystem";
 import { useSettings } from "../store/useSettingsStore";
 import { PROJECTS, BIO_SHORT, CONTACT_EMAIL, CONTACT_GITHUB, BIO_LONG } from "../data/projects";
 import { WALLPAPERS } from "../data/wallpapers";
+import { pkgList, searchPkgs, isInstalled, install, removePkg } from "../lib/packages/packageManager";
+import { askAI } from "../lib/ai/aiAssistant";
 import { openApp } from "../system/DesktopIcons";
 import type { WindowState } from "../types";
 
@@ -144,7 +146,40 @@ export default function TerminalApp({ win }: { win: WindowState }) {
         case "projects": Object.values(PROJECTS).forEach((p) => out(`${YELLOW}${B}${p.name}${RESET} — ${p.desc}`)); break;
         case "contact": out(`email: ${CYAN}${CONTACT_EMAIL}${RESET}\ngithub: ${CYAN}${CONTACT_GITHUB}${RESET}`); break;
         case "about": out(BIO_SHORT + "\n\n" + BIO_LONG); break;
-        case "sudo": out(`${RED}navairgap is not in the sudoers file. this incident will be reported.${RESET}`); break;
+        case "sudo":
+          if (args.join(" ") === "rm -rf /") { dispatchEvent(new Event("os-bsod")); out(`${RED}deleting system...${RESET}`); break; }
+          out(`${RED}navairgap is not in the sudoers file. this incident will be reported.${RESET}`);
+          break;
+        case "apt": case "pkg": {
+          const [sub, ...rest] = args;
+          const q = rest.join(" ");
+          if (sub === "list") pkgList().forEach((p) => out(`${isInstalled(p.id) ? GREEN + "installed" : "          "} ${RESET}${p.title.toLowerCase().replace(/\s/g, "-")} ${GREY}— ${p.title}${RESET}`));
+          else if (sub === "search") searchPkgs(q).forEach((p) => out(`${p.title} ${GREY}(${p.id})${RESET}${p.installed ? " " + GREEN + "[installed]" + RESET : ""}`));
+          else if (sub === "update") out("Get:1 http://portfolio.nav stable InRelease [12.3 kB]\nReading package lists... Done");
+          else if (sub === "install") {
+            const pkgs = pkgList().filter((p) => !p.installed && (p.id === q || p.title.toLowerCase().replace(/\s/g, "-") === q));
+            if (!pkgs.length) { out(`${RED}E: Unable to locate package ${q}${RESET}`); break; }
+            let i = 0;
+            const t = setInterval(() => {
+              i += 20;
+              out(`[${"#".repeat(i / 20).padEnd(5, ".")}] ${i}% ${pkgs[0].title.toLowerCase().replace(/\s/g, "-")}`);
+              if (i >= 100) { clearInterval(t); install(pkgs[0].id); out(`${GREEN}installed ${pkgs[0].title}${RESET} — find it in the dock`); dispatchEvent(new Event("os-refresh-dock")); }
+            }, 200);
+          }
+          else if (sub === "remove") { if (removePkg(q)) out(`removed ${q}`); else out(`${RED}cannot remove system package${RESET}`); }
+          else out("usage: apt <list|search|install|remove|update>");
+          break;
+        }
+        case "ask": {
+          const q = parts.slice(1).join(" ").replace(/^["']|["']$/g, "");
+          if (!q) { out(`usage: ask "your question"`); break; }
+          term.write(GREY);
+          askAI(q, (c) => term.write(c)).then(() => { term.write(RESET + "\r\n"); prompt(); })
+            .catch((e) => { term.write(RESET); term.writeln(e.message === "NO_KEY"
+              ? `no API key set — open Settings → About This System and paste an OpenAI key under "AI Assistant".`
+              : `error: ${e.message}`); prompt(); });
+          break;
+        }
         case "cowsay": out(COW(ps.join(" ") || "moo")); break;
         case "fortune": out(QUOTES[Math.floor(Math.random() * QUOTES.length)]); break;
         case "theme": if (ps[0] === "dark" || ps[0] === "light") { settings.set({ theme: ps[0] as any }); out(`theme set to ${ps[0]}`); } else out(`usage: theme <${CYAN}dark${RESET}|${CYAN}light${RESET}>`); break;
@@ -204,9 +239,10 @@ export default function TerminalApp({ win }: { win: WindowState }) {
     term.writeln([
       ` ${CYAN}┌─┐┌─┐┌┐┌┌─┐┬─┐${RESET}`,
       ` ${CYAN}│││├─┤││││  ├┬┘${RESET}   ${B}navairgap shell${RESET} ${GREY}v1.0${RESET}`,
-      ` ${CYAN}└┴┘┴ ┴┘└┘└─┘┴└─${RESET}   type ${CYAN}help${RESET} for commands · ${CYAN}projects${RESET} · ${CYAN}neofetch${RESET}`,
+      ` ${CYAN}└┴┘┴ ┴┘└┘└─┘┴└─${RESET}   ${CYAN}help${RESET} commands · ${CYAN}projects${RESET} · ${CYAN}apt${RESET} · ${CYAN}ask${RESET} · ${CYAN}neofetch${RESET}`,
       "",
     ].join("\r\n"));
+    if (win.props.run) setTimeout(() => { exec(String(win.props.run)); prompt(); }, 350);
     prompt();
 
     const onResize = () => fit.fit();

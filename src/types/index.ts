@@ -63,6 +63,10 @@ export interface SettingsState {
   showSeconds: boolean;
   dnd: boolean;
   skipBoot: boolean;
+  timezone: string;
+  powerDrain: boolean;
+  widgets: { clock: boolean; weather: boolean; stats: boolean; note: boolean; now: boolean };
+  aiKey: string;
 }
 
 export type OSPhase = "boot" | "login" | "desktop" | "shutdown";

@@ -5,6 +5,7 @@ import { openContextMenu } from "./ContextMenu";
 import { DESKTOP } from "../lib/filesystem";
 import { useFS } from "../store/useFileSystemStore";
 import { APPS } from "../registry/appRegistry";
+import { useFileDrag } from "../features/dragToOpen/useDragToOpen";
 
 export function openApp(appId: string, props: Record<string, any> = {}, title?: string) {
   const app = APPS.find((a) => a.id === appId)!;
@@ -40,7 +41,8 @@ export default function DesktopIcons() {
         const name = fs.get(p)?.name || p.split("/").pop()!;
         const Icon = name === "README.md" ? FileText : name === "Contact" ? Mail : name === "Home" || name === "Projects" ? FolderOpen : Folder;
         return (
-          <button key={p} onClick={(e) => { e.stopPropagation(); setSel(p); }} onDoubleClick={() => dbl(name)}
+          <button key={p} onClick={(e) => { e.stopPropagation(); setSel(p); }} onDoubleClick={() => dbl(name)} draggable
+            onDragStart={() => useFileDrag.getState().set(p)} onDragEnd={() => useFileDrag.getState().set(null)}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); openContextMenu(e.clientX, e.clientY, [
               { label: "Open", action: () => dbl(name) },
               { label: "Rename", disabled: true },

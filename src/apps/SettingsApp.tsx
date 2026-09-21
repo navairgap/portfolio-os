@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Palette, Monitor, Volume2, Wifi, User, Clock, Bell, Keyboard, HardDrive, Info } from "lucide-react";
+import { Palette, Monitor, Volume2, Wifi, User, Clock, Bell, Keyboard, HardDrive, Info, Power } from "lucide-react";
 import { useSettings } from "../store/useSettingsStore";
 import { useNotifications } from "../store/useNotificationStore";
 import { WALLPAPERS } from "../data/wallpapers";
@@ -32,7 +32,7 @@ const TABS = [
   ["appearance", "Appearance", Palette], ["display", "Display", Monitor], ["sound", "Sound", Volume2],
   ["network", "Network", Wifi], ["users", "Users", User], ["datetime", "Date & Time", Clock],
   ["notifications", "Notifications", Bell], ["keyboard", "Keyboard", Keyboard],
-  ["storage", "Storage", HardDrive], ["about", "About This System", Info],
+  ["storage", "Storage", HardDrive], ["power", "Power", Power], ["about", "About This System", Info],
 ] as const;
 
 export default function SettingsApp({ win }: { win: WindowState }) {
@@ -99,6 +99,13 @@ export default function SettingsApp({ win }: { win: WindowState }) {
           </Row>
           <Row label="Animations"><Toggle on={s.animations} onChange={(v: boolean) => s.set({ animations: v })} /></Row>
           <Row label="Skip boot on reload"><Toggle on={s.skipBoot} onChange={(v: boolean) => s.set({ skipBoot: v })} /></Row>
+          <div className="py-3">
+            <div className="text-[13px] mb-2">Desktop widgets</div>
+            {[["clock", "Clock"], ["weather", "Weather"], ["stats", "System stats"], ["note", "Sticky note"], ["now", "Now playing"]].map(([id, label]) => (
+              <Row key={id} label={label}><Toggle on={(s.widgets as any)[id]} onChange={(v: boolean) => s.set({ widgets: { ...s.widgets, [id]: v } })} /></Row>
+            ))}
+            <button onClick={() => { localStorage.removeItem("os.widgets.pos"); location.reload(); }} className="mt-3 px-3 py-1.5 rounded-[6px] bg-[rgba(255,255,255,.08)] text-[12px]">Reset widget layout</button>
+          </div>
         </>)}
         {tab === "display" && (<>
           <h3 className="text-[13px] font-semibold mb-1">Display</h3>
@@ -165,8 +172,8 @@ export default function SettingsApp({ win }: { win: WindowState }) {
           <Row label="12-hour clock"><Toggle on={s.hour12} onChange={(v: boolean) => s.set({ hour12: v })} /></Row>
           <Row label="Show seconds"><Toggle on={s.showSeconds} onChange={(v: boolean) => s.set({ showSeconds: v })} /></Row>
           <Row label="Timezone">
-            <select className="h-8 px-2 rounded-[6px] bg-[#232328] border border-[rgba(255,255,255,.08)] text-[#f4f4f5] text-[12px]">
-              {["UTC", "Asia/Kolkata (+5:30)", "Europe/London", "America/New_York"].map((t) => <option key={t}>{t}</option>)}
+            <select value={s.timezone} onChange={(e) => s.set({ timezone: e.target.value })} className="h-8 px-2 rounded-[6px] bg-[#232328] border border-[rgba(255,255,255,.08)] text-[#f4f4f5] text-[12px] max-w-[220px]">
+              {(Intl as any).supportedValuesOf ? (Intl as any).supportedValuesOf("timeZone").map((t: string) => <option key={t}>{t}</option>) : <option>{s.timezone}</option>}
             </select>
           </Row>
         </>)}
@@ -193,12 +200,26 @@ export default function SettingsApp({ win }: { win: WindowState }) {
           <Row label="GitHub repositories"><span className="text-[13px]">{repos ?? "offline"}</span></Row>
           <Row label="Lines of code (approx)"><span className="text-[13px]">41,208 and counting</span></Row>
         </>)}
+        {tab === "power" && (<>
+          <h3 className="text-[13px] font-semibold mb-1">Power</h3>
+          <Row label="Battery drain simulation"><Toggle on={s.powerDrain} onChange={(v: boolean) => s.set({ powerDrain: v })} /></Row>
+          <Row label="Automatic suspend"><span className="text-[12px] text-[rgba(244,244,245,.38)]">never — this is a portfolio</span></Row>
+        </>)}
         {tab === "about" && (<>
           <h3 className="text-[13px] font-semibold mb-1">About This System</h3>
           <p className="text-[13px] text-[rgba(244,244,245,.72)] max-w-md leading-[1.7]">
             This OS is a portfolio. Every window, every file, every command tells you something about navairgap —
             defensive security × backend. Open Projects/, run `projects` in the terminal, or read Documents/resume.pdf.
           </p>
+          <div className="mb-3 p-3 rounded-[8px] bg-[rgba(255,255,255,.04)] border border-[rgba(255,255,255,.08)]">
+            <div className="text-[12px] text-[rgba(244,244,245,.62)]">System has been booted <b className="text-[#f4f4f5]">{localStorage.getItem("os.bootcount") || 1}</b> times
+              {localStorage.getItem("os.lastboot") && <> · last booted {Math.max(0, Math.round((Date.now() - Number(localStorage.getItem("os.lastboot"))) / 60000))} minutes ago</>}</div>
+          </div>
+          <div className="mb-3">
+            <div className="text-[13px] font-semibold mb-1">AI Assistant</div>
+            <input value={s.aiKey} onChange={(e) => s.set({ aiKey: e.target.value })} type="password" placeholder="OpenAI API key (stored locally, used by terminal 'ask')"
+              className="w-full max-w-sm h-8 px-2 rounded-[6px] bg-[rgba(255,255,255,.05)] border border-[rgba(255,255,255,.08)] text-[#f4f4f5] focus:outline-none focus:border-[#7c9cff] text-[12px]" />
+          </div>
           <div className="mt-3 p-3 rounded-[8px] bg-[rgba(255,255,255,.04)] border border-[rgba(255,255,255,.08)] font-mono text-[12px] text-[rgba(244,244,245,.62)]">
             <div><b className="text-[#7c9cff]">OS</b> navairgap OS 1.0</div>
             <div><b className="text-[#7c9cff]">Kernel</b> 6.8.0-portfolio</div>

@@ -7,5 +7,7 @@ export const WALLPAPERS: Wallpaper[] = [
   { name: "bone", css: "linear-gradient(180deg, #171614 0%, #0e0e10 70%)" },
   { name: "violet", css: "radial-gradient(1000px 700px at 30% 80%, #191225 0%, #0e0e10 65%)" },
   { name: "plain", css: "#0e0e10" },
+  { name: "live", css: "radial-gradient(900px 600px at 40% 30%, #14141a 0%, #0e0e10 70%)", animated: true },
+  { name: "matrix", css: "#0a0f0a", animated: true },
   { name: "drift", css: "radial-gradient(900px 600px at 20% 30%, #14141a 0%, transparent 60%), radial-gradient(900px 600px at 80% 70%, #181016 0%, #0e0e10 70%)", animated: true },
 ];
