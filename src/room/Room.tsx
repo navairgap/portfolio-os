@@ -21,15 +21,18 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
     if (lowPower) onEnter();
   }, [lowPower, onEnter]);
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === "v" || e.key === "V" || e.key === "c" || e.key === "C") setMode((m) => (m === "desk" ? "room" : "desk")); };
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "v" || e.key === "V" || e.key === "c" || e.key === "C") setMode((m) => (m === "desk" ? "room" : "desk"));
+      if (e.key === "Escape") onEnter();
+    };
     addEventListener("keydown", h);
     return () => removeEventListener("keydown", h);
   }, []);
   if (lowPower) return null;
   return (
     <div className="fixed inset-0 z-[120] bg-black">
-      <Canvas
-        dpr={[1, 1.5]} shadows={{ type: 2 }} camera={{ fov: 45, near: 0.05, far: 40 }}
+      <Canvas key="roomcanvas"
+        dpr={[1, 1.25]} shadows camera={{ fov: 45, near: 0.05, far: 40 }}
         gl={{ antialias: true, toneMapping: 4 /* ACESFilmic */, toneMappingExposure: 1.5 }}
         onPointerMissed={() => setMode((m) => (m === "desk" ? "room" : "desk"))}>
         <color attach="background" args={["#0a0a12"]} />
@@ -48,8 +51,12 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
           <Effects />
         </Suspense>
       </Canvas>
-      <div className="absolute top-3 left-4 text-[11px] text-[var(--text-tertiary)] uppercase tracking-[.15em]">
-        office — <b className="text-[var(--accent)]">v</b>/click background: camera · <b className="text-[var(--accent)]">click the monitor</b> to take the desk
+      <div className="absolute top-3 left-4 right-4 flex items-center gap-3 text-[11px] uppercase tracking-[.15em]">
+        <span className="text-[var(--text-tertiary)]">office</span>
+        <button onClick={() => setMode("room")} className={`px-2.5 py-1 border ${mode === "room" ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border-strong)] text-[var(--text-secondary)]"}`}>room</button>
+        <button onClick={() => setMode("desk")} className={`px-2.5 py-1 border ${mode === "desk" ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border-strong)] text-[var(--text-secondary)]"}`}>desk</button>
+        <span className="text-[var(--text-tertiary)] hidden sm:inline">v / click background also works</span>
+        <button onClick={onEnter} className="ml-auto px-3 py-1 bg-[var(--accent)] text-black font-semibold">take the desk (esc)</button>
       </div>
     </div>
   );

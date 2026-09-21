@@ -7,10 +7,8 @@ export default function Effects() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
   return (
     <EffectComposer>
-      <Bloom intensity={0.3} luminanceThreshold={0.7} mipmapBlur />
-      <ChromaticAberration offset={off} />
-      <Vignette offset={0.3} darkness={0.6} />
-      <Noise opacity={0.03} />
+      <Bloom intensity={0.25} luminanceThreshold={0.75} mipmapBlur />
+      <Vignette offset={0.25} darkness={0.55} />
     </EffectComposer>
   );
 }

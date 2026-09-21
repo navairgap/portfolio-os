@@ -11,6 +11,7 @@ import LockScreen from "./features/lockScreen/LockScreen";
 import RecoveryShell from "./features/recovery/RecoveryShell";
 import ErrorBoundary from "./system/ErrorBoundary";
 import { lazy, Suspense, useState } from "react";
+import { RoomBoundary } from "./room/RoomBoundary";
 const Room = lazy(() => import("./room/Room"));
 
 export default function App() {
@@ -76,9 +77,11 @@ export default function App() {
 
       {phase === "desktop" && <Desktop />}
       {phase === "desktop" && roomView && (
-        <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
-          <Room onEnter={() => setRoomView(false)} />
-        </Suspense>
+        <RoomBoundary onExit={() => setRoomView(false)}>
+          <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
+            <Room onEnter={() => setRoomView(false)} />
+          </Suspense>
+        </RoomBoundary>
       )}
       {phase === "lock" && <Desktop />}
       {phase === "lock" && <LockScreen />}
