@@ -1,10 +1,10 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { CameraControls, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import MonitorScreen from "./MonitorScreen";
 import { starfieldTexture, posterTexture } from "./textures";
-import { MODES, useCameraModes } from "./useCameraModes";
+import { MODES } from "./useCameraModes";
 
 const BEIGE = "#c8c0b0", BEIGE2 = "#b0a894", DARK = "#1a1a1e", WOOD = "#4a3524";
 
@@ -105,20 +105,14 @@ function MugAndPapers() {
 
 function Rig({ mode, onEnter }: { mode: "desk" | "room"; onEnter: () => void }) {
   const controls = useRef<CameraControls | null>(null);
-  const cam = useCameraModes();
   const first = useRef(true);
   useEffect(() => {
     const c = controls.current as any;
     if (!c) return;
-    const cam3 = c.camera as THREE.PerspectiveCamera;
-    if (first.current) { cam3.position.set(...MODES.desk.pos); c.target.set(...MODES.desk.target); first.current = false; }
-    cam.flyTo(cam3, MODES[mode]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const m = MODES[mode];
+    if (first.current) { c.setLookAt(m.pos[0], m.pos[1], m.pos[2], m.target[0], m.target[1], m.target[2], false); first.current = false; return; }
+    c.setLookAt(m.pos[0], m.pos[1], m.pos[2], m.target[0], m.target[1], m.target[2], true);
   }, [mode]);
-  useFrame(() => {
-    const c = controls.current as any;
-    if (c) cam.tick(c.camera as THREE.PerspectiveCamera, c);
-  });
   return (
     <>
       <CameraControls ref={controls as any} makeDefault enabled={false} minDistance={0.2} maxDistance={8} />
