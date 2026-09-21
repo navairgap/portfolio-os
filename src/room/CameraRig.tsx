@@ -31,18 +31,20 @@ export default function CameraRig({ mode, screenPos, chairPos }: { mode: "desk" 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, screenPos[0], screenPos[1], screenPos[2]]);
 
+  const par = useRef({ x: 0, y: 0 });
   useFrame(({ clock }, dt) => {
-    idle.current += dt;
     const c = controls.current as any;
-    if (!c || mode !== "desk") return;
+    if (!c) return;
+    idle.current += dt;
     const t = clock.elapsedTime;
-    const bob = idle.current > 5 && !matchMedia("(prefers-reduced-motion: reduce)").matches ? Math.sin(t * (Math.PI * 2) / 4) * 0.005 : 0;
-    const pan = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1;
-    const cx = Math.sin(mouse.current.x * 3 * Math.PI / 180) * 0.9;
-    const cy = -mouse.current.y * 3 * Math.PI / 180 * 0.6;
-    c.azimuthAngle = cx * pan;
-    c.polarAngle = Math.PI / 2 - 0.12 + cy * pan;
-    c.setPosition(DESK()[0] + bob, DESK()[1] + bob, DESK()[2], false);
+    const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const bob = !rm && idle.current > 5 && mode === "desk" ? Math.sin(t * (Math.PI * 2) / 4) * 0.004 : 0;
+    const k = Math.min(1, dt * 6);
+    const amp = rm ? 0 : mode === "desk" ? 0.14 : 0.3;
+    par.current.x += (mouse.current.x * amp - par.current.x) * k;
+    par.current.y += (-mouse.current.y * amp * 0.6 - par.current.y) * k;
+    const base = mode === "desk" ? DESK() : ROOM;
+    c.setPosition(base[0] + par.current.x, base[1] + par.current.y + bob, base[2], false);
   });
   return <CameraControls ref={controls as any} makeDefault enabled={false} minDistance={0.3} maxDistance={9} />;
 }

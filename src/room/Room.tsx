@@ -15,7 +15,7 @@ function Loader() {
 }
 
 export default function Room({ onEnter }: { onEnter: () => void }) {
-  const [mode, setMode] = useState<"desk" | "room">("desk");
+  const [mode, setMode] = useState<"desk" | "room">("room");
   const lowPower = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
   useEffect(() => {
     if (lowPower) onEnter();
@@ -30,14 +30,14 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
     <div className="fixed inset-0 z-[120] bg-black">
       <Canvas
         dpr={[1, 1.5]} shadows={{ type: 2 }} camera={{ fov: 45, near: 0.05, far: 40 }}
-        gl={{ antialias: true, toneMapping: 4 /* ACESFilmic */, toneMappingExposure: 1.2 }}
+        gl={{ antialias: true, toneMapping: 4 /* ACESFilmic */, toneMappingExposure: 1.5 }}
         onPointerMissed={() => setMode((m) => (m === "desk" ? "room" : "desk"))}>
         <color attach="background" args={["#0a0a12"]} />
         <fogExp2 attach="fog" args={["#0a0a12", 0.08]} />
         <Suspense fallback={<Loader />}>
           <OfficeRoom>
             {(found) => (<>
-              <RoomShell />
+              <RoomShell onToggle={() => setMode((m) => (m === "desk" ? "room" : "desk"))} />
               <WallDecor />
               <Lighting screenPos={found.screenPos.toArray() as [number, number, number]} />
               <CameraRig mode={mode} screenPos={found.screenPos.toArray() as [number, number, number]} chairPos={found.chairCenter.toArray() as [number, number, number]} />
