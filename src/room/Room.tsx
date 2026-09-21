@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { CameraControls, Preload } from "@react-three/drei";
 import * as THREE from "three";
 import MonitorScreen from "./MonitorScreen";
