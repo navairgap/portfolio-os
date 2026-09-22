@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { Html, OrbitControls, useGLTF } from "@react-three/drei";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import gsap from "gsap";
 import { useWindows } from "../store/useWindowStore";
 import { useSettings } from "../store/useSettingsStore";
@@ -10,236 +10,213 @@ import { APPS } from "../registry/appRegistry";
 
 const MODEL_URL = (import.meta as any).env?.BASE_URL + "models/room2.glb";
 const CAM_POS = { x: 1.009028643133046, y: 0.5463638814987481, z: 0.4983449671971262 };
-const CAM_ROT = { x: -0.8310687859940357, y: 0.9380973951104649, z: 0.7243388791233853 };
 
-/* ---------- live OS preview ---------- */
-function ScreenPreview({ onEnter }: { onEnter: () => void }) {
-  const { windows, activeWorkspace } = useWindows();
-  const s = useSettings();
+/* live desktop painted to a canvas → screen texture */
+function drawOS(x: CanvasRenderingContext2D, W: number, H: number) {
+  const s = useSettings.getState();
+  const { windows, activeWorkspace } = useWindows.getState();
   const wp = WALLPAPERS[s.wallpaper] || WALLPAPERS[0];
-  const VW = 1024, VH = 768;
-  const clock = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return (
-    <div onClick={onEnter} title="click to take the desk"
-      style={{ width: VW, height: VH, background: "#000", color: "#e6e6e6", fontFamily: "JetBrains Mono, monospace", position: "relative", overflow: "hidden", cursor: "pointer" }}>
-      <div style={{ position: "absolute", inset: 0, background: wp.css.includes("gradient") ? "#0a0a0c" : "#050507" }} />
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 22, background: "rgba(5,5,7,.85)", borderBottom: "1px solid rgba(255,255,255,.06)", display: "flex", alignItems: "center", gap: 10, padding: "0 10px", fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em" }}>
-        <span style={{ color: "#ff2b2b" }}>█</span>
-        <span style={{ color: "rgba(230,230,230,.4)" }}>[ workspace {activeWorkspace + 1} ]</span>
-        <span style={{ marginLeft: "auto", color: "#00ff9c" }}>{clock}</span>
-      </div>
-      {windows.filter((w) => w.workspaceId === activeWorkspace && !w.isMinimized).map((w) => {
-        const app = APPS.find((a) => a.id === w.appId);
-        return (
-          <div key={w.id} style={{
-            position: "absolute", left: (w.x / innerWidth) * VW * 0.8 + 20, top: (w.y / innerHeight) * VH * 0.7 + 26,
-            width: Math.max(80, (w.width / innerWidth) * VW * 0.62), height: Math.max(56, (w.height / innerHeight) * VH * 0.6),
-            background: "#0b0b0e", border: `1px solid ${w.isFocused ? "#ff2b2b" : "rgba(255,255,255,.12)"}`, borderLeft: `3px solid ${w.isFocused ? "#ff2b2b" : "rgba(255,255,255,.2)"}`,
-          }}>
-            <div style={{ height: 18, background: "#131317", borderBottom: "1px solid rgba(255,255,255,.04)", fontSize: 10, padding: "2px 6px", textTransform: "uppercase", letterSpacing: ".06em", color: w.isFocused ? "#ff2b2b" : "rgba(230,230,230,.4)" }}>{app?.title || w.title}</div>
-            <div style={{ padding: 6, fontSize: 10, color: "rgba(230,230,230,.35)" }}>{w.appId === "terminal" ? "navairgap@blackarch:~$ █" : ""}</div>
-          </div>
-        );
-      })}
-      {!windows.length && <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", fontSize: 13, color: "rgba(230,230,230,.35)" }}>desktop idle — click to take the desk</div>}
-      <div style={{ position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "rgba(255,43,43,.8)", textTransform: "uppercase", letterSpacing: ".2em" }}>click to take control</div>
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px)" }} />
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", boxShadow: "inset 0 0 60px rgba(0,0,0,.55)" }} />
-    </div>
-  );
-}
-
-/* ---------- mesh finding ---------- */
-function analyze(scene: THREE.Object3D) {
-  scene.updateMatrixWorld(true);
-  const box = new THREE.Box3(), s = new THREE.Vector3(), v = new THREE.Vector3();
-  let screen: THREE.Mesh | null = null, switchM: THREE.Mesh | null = null, book: THREE.Mesh | null = null;
-  scene.traverse((o) => {
-    const m = o as THREE.Mesh;
-    if (!m.isMesh) return;
-    if (/^Stand/.test(m.name) && !screen) screen = m;
-    if (/^Switch/.test(m.name) && !switchM) switchM = m;
-    if (/^Book/.test(m.name) && !book) book = m;
-    box.setFromObject(m); box.getSize(s); box.getCenter(v);
-    if (!screen && Math.min(s.x, s.y, s.z) < 0.03 && Math.max(s.x, s.z) > 0.3 && v.y > 0.3) screen = m;
-  });
-  const out: any = {};
-  if (switchM) { const b = new THREE.Box3().setFromObject(switchM as THREE.Mesh); out.switchBox = { pos: b.getCenter(new THREE.Vector3()), size: b.getSize(new THREE.Vector3()) }; }
-  if (book) { const b = new THREE.Box3().setFromObject(book as THREE.Mesh); out.bookBox = { pos: b.getCenter(new THREE.Vector3()), size: b.getSize(new THREE.Vector3()) }; }
-  if (screen) {
-    box.setFromObject(screen as THREE.Mesh);
-    const c = box.getCenter(new THREE.Vector3());
-    const sz = box.getSize(new THREE.Vector3());
-    const thinAxis = sz.x <= sz.y && sz.x <= sz.z ? "x" : sz.y <= sz.z ? "y" : "z";
-    const front = new THREE.Vector3(CAM_POS.x - c.x, 0, CAM_POS.z - c.z).normalize();
-    const perp = new THREE.Vector3(-front.z, 0, front.x);
-    out.screen = {
-      pos: c.clone().addScaledVector(front, ((sz as any)[thinAxis]) / 2 + 0.006),
-      quat: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), front),
-      w: (Math.abs(sz.x * perp.x) + Math.abs(sz.z * perp.z)) * 0.96,
-      h: sz.y * 0.96,
-      center: c, front,
-    };
+  x.fillStyle = wp.css.includes("gradient") ? "#0a0a0c" : "#050507";
+  x.fillRect(0, 0, W, H);
+  x.fillStyle = "rgba(5,5,7,.85)"; x.fillRect(0, 0, W, 22);
+  x.fillStyle = "#ff2b2b"; x.font = "bold 11px monospace"; x.fillText("█", 10, 15);
+  x.fillStyle = "rgba(230,230,230,.4)"; x.fillText(`[ workspace ${activeWorkspace + 1} ]`, 26, 15);
+  x.fillStyle = "#00ff9c"; x.textAlign = "right";
+  x.fillText(new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), W - 10, 15);
+  x.textAlign = "left";
+  const scale = Math.min(W / innerWidth, H / innerHeight);
+  for (const w of windows.filter((w) => w.workspaceId === activeWorkspace && !w.isMinimized)) {
+    const wx = (w.x / innerWidth) * W * 0.82 + 16, wy = (w.y / innerHeight) * H * 0.7 + 26;
+    const ww = Math.max(70, (w.width / innerWidth) * W * 0.6), wh = Math.max(48, (w.height / innerHeight) * H * 0.58);
+    x.fillStyle = "#0b0b0e"; x.fillRect(wx, wy, ww, wh);
+    x.strokeStyle = w.isFocused ? "#ff2b2b" : "rgba(255,255,255,.14)"; x.strokeRect(wx, wy, ww, wh);
+    x.fillStyle = "#131317"; x.fillRect(wx, wy, ww, 18);
+    x.fillStyle = w.isFocused ? "#ff2b2b" : "rgba(230,230,230,.4)";
+    x.font = "10px monospace"; x.fillText((APPS.find((a) => a.id === w.appId)?.title || w.title).toUpperCase(), wx + 6, wy + 13);
+    if (w.appId === "terminal") { x.fillStyle = "rgba(0,255,156,.6)"; x.fillText("navairgap@blackarch:~$ █", wx + 6, wy + 34); }
   }
-  return out;
-}
-
-/* ---------- scene ---------- */
-function Scene({ onEnter, onTick, onToggleLights, onFocusBook, lightsOn, focus, setFocus }: any) {
-  const { scene } = useGLTF(MODEL_URL);
-  const ticks = useRef(0);
-  const info = useMemo(() => analyze(scene), [scene]);
-
-  useEffect(() => {
-    scene.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh) return;
-      if (m.name !== 'Wall') { m.castShadow = true; m.receiveShadow = true; }
-    });
-  }, [scene]);
-
-  useFrame(() => { ticks.current++; if (ticks.current % 15 === 0) onTick(ticks.current); });
-
-  const stop = (e: ThreeEvent<MouseEvent>) => e.stopPropagation();
-
-  return (<>
-    <primitive object={scene} />
-    {info.screen && (
-      <group position={info.screen.pos.toArray()} quaternion={info.screen.quat}>
-        <mesh onClick={(e) => { stop(e); focus("screen"); }} onPointerOver={(e) => { stop(e); document.body.style.cursor = "pointer"; }} onPointerOut={() => (document.body.style.cursor = "")}>
-          <planeGeometry args={[info.screen.w, info.screen.h]} />
-          <meshBasicMaterial color="#000" side={THREE.DoubleSide} />
-        </mesh>
-        <Html transform position={[0, 0, 0.01]} scale={info.screen.w / 1024}>
-          <ScreenPreview onEnter={onEnter} />
-        </Html>
-      </group>
-    )}
-    {info.switchBox && (
-      <mesh position={info.switchBox.pos.toArray()} onClick={(e) => { stop(e); onToggleLights(); }} onPointerOver={(e) => { stop(e); document.body.style.cursor = "pointer"; }} onPointerOut={() => (document.body.style.cursor = "")}>
-        <boxGeometry args={[Math.max(0.06, info.switchBox.size.x * 1.4), Math.max(0.06, info.switchBox.size.y * 1.4), Math.max(0.06, info.switchBox.size.z * 1.4)]} />
-        <meshBasicMaterial visible={false} />
-      </mesh>
-    )}
-    {info.bookBox && (
-      <mesh position={info.bookBox.pos.toArray()} onClick={(e) => { stop(e); onFocusBook(info.bookBox.pos); }} onPointerOver={(e) => { stop(e); document.body.style.cursor = "pointer"; }} onPointerOut={() => (document.body.style.cursor = "")}>
-        <boxGeometry args={[Math.max(0.12, info.bookBox.size.x * 1.2), Math.max(0.08, info.bookBox.size.y * 1.2), Math.max(0.12, info.bookBox.size.z * 1.2)]} />
-        <meshBasicMaterial visible={false} />
-      </mesh>
-    )}
-    <Lights lightsOn={lightsOn} />
-  </>);
-}
-
-function Lights({ lightsOn }: { lightsOn: boolean }) {
-  const amb = useRef<THREE.AmbientLight>(null);
-  const dir = useRef<THREE.DirectionalLight>(null);
-  useFrame(() => {
-    if (amb.current) amb.current.intensity += ((lightsOn ? 0.7 : 0.18) - amb.current.intensity) * 0.08;
-    if (dir.current) dir.current.intensity += ((lightsOn ? 1.6 : 0.3) - dir.current.intensity) * 0.08;
-  });
-  return (<>
-    <ambientLight ref={amb} intensity={0.7} />
-    <directionalLight ref={dir} position={[3, 5, 3]} intensity={1.6} />
-    <directionalLight position={[-3, 2, -2]} intensity={0.4} color="#8aa" />
-  </>);
-}
-useGLTF.preload(MODEL_URL);
-
-/* ---------- camera control ---------- */
-function CameraRig({ controls, focus, focusPos, focusTarget, onEnter, onReset }: any) {
-  const { camera } = useThree();
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const fly = (pos: THREE.Vector3, look: THREE.Vector3, done?: () => void) => {
-    dummy.position.copy(pos); dummy.lookAt(look);
-    const c = controls.current;
-    if (c) c.enabled = false;
-    gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 1.5, ease: "power3.inOut" });
-    gsap.to(camera.rotation, { x: dummy.rotation.x, y: dummy.rotation.y, z: dummy.rotation.z, duration: 1.5, ease: "power3.inOut", onUpdate: () => c?.update(), onComplete: () => { if (c) c.enabled = true; done?.(); } });
-  };
-  useEffect(() => {
-    if (focus === "screen" && focusPos) fly(focusPos.pos, focusPos.look, onEnter);
-    else if (focus === "book" && focusPos) fly(focusPos.pos, focusPos.look);
-    else if (focus === "reset") { camera.position.set(2.2, 1.6, 2.2); gsap.to(camera.position, { ...CAM_POS, duration: 1.5, ease: "power3.inOut" }); gsap.to(camera.rotation, { ...CAM_ROT, duration: 1.5, ease: "power3.inOut", onUpdate: () => controls.current?.update() }); onReset(); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focus]);
-  return null;
+  if (!windows.length) {
+    x.fillStyle = "rgba(230,230,230,.35)"; x.font = "13px monospace"; x.textAlign = "center";
+    x.fillText("desktop idle — click to take the desk", W / 2, H / 2); x.textAlign = "left";
+  }
+  x.fillStyle = "rgba(255,43,43,.75)"; x.font = "10px monospace"; x.textAlign = "center";
+  x.fillText("CLICK TO TAKE CONTROL", W / 2, H - 10); x.textAlign = "left";
+  // scanlines
+  x.fillStyle = "rgba(255,255,255,.02)";
+  for (let y = 0; y < H; y += 3) x.fillRect(0, y, W, 1);
 }
 
 export default function Room({ onEnter }: { onEnter: () => void }) {
+  const host = useRef<HTMLDivElement>(null);
   const [ticks, setTicks] = useState(0);
-  const [lightsOn, setLightsOn] = useState(true);
-  const [focus, setFocus] = useState<string>("");
-  const [focusPos, setFocusPos] = useState<any>(null);
-  const controls = useRef<any>(null);
-  const settings = useSettings();
+  const [msg, setMsg] = useState("loading model…");
 
-  const focusScreen = () => {
-    // computed lazily from the live scene via a custom event into CameraRig's target
-    const el = document.querySelector("canvas");
-    // ask Scene for screen data through window bridge set below
-    const sc = (window as any).__screenInfo;
-    if (!sc) return onEnter();
-    setFocusPos({ pos: sc.pos.clone().addScaledVector(sc.front, 0.34).add(new THREE.Vector3(0, 0.02, 0)), look: sc.center });
-    setFocus("screen");
-  };
-  useEffect(() => { (window as any).__focusScreen = focusScreen; }, [focusScreen]);
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onEnter(); };
-    addEventListener("keydown", h);
-    return () => removeEventListener("keydown", h);
-  }, [onEnter]);
+    const el = host.current!;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.setSize(el.clientWidth, el.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    el.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#0b0b12");
+    const camera = new THREE.PerspectiveCamera(75, el.clientWidth / el.clientHeight, 0.01, 1000);
+    camera.position.set(2.2, 1.6, 2.2);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 0.9;
+    controls.maxDistance = 1.6;
+    controls.minAzimuthAngle = 0.2;
+    controls.maxAzimuthAngle = Math.PI * 0.78;
+    controls.minPolarAngle = 0.3;
+    controls.maxPolarAngle = Math.PI / 2;
+
+    const amb = new THREE.AmbientLight(0xffffff, 0.7);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.6);
+    dir.position.set(3, 5, 3);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(512, 512);
+    const dir2 = new THREE.DirectionalLight(0x8899aa, 0.4);
+    dir2.position.set(-3, 2, -2);
+    scene.add(amb, dir, dir2);
+
+    // OS canvas → screen texture
+    const osCanvas = document.createElement("canvas");
+    osCanvas.width = 1024; osCanvas.height = 768;
+    const osCtx = osCanvas.getContext("2d")!;
+    const osTex = new THREE.CanvasTexture(osCanvas);
+    osTex.colorSpace = THREE.SRGBColorSpace;
+
+    const ray = new THREE.Raycaster();
+    const ptr = new THREE.Vector2();
+    let screenMesh: THREE.Mesh | null = null;
+    let switchMesh: THREE.Mesh | null = null;
+    let bookMesh: THREE.Mesh | null = null;
+    let focusFlight: { pos: THREE.Vector3; look: THREE.Vector3 } | null = null;
+    const dummy = new THREE.Object3D();
+
+    let lightsOn = true;
+    let raf = 0, frames = 0, lastDraw = 0, disposed = false;
+
+    new GLTFLoader().load(MODEL_URL, (gltf) => {
+      if (disposed) return;
+      const model = gltf.scene;
+      scene.add(model);
+      model.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (!m.isMesh) return;
+        if (m.name !== "Wall") { m.castShadow = true; m.receiveShadow = true; }
+        if (/^Stand/.test(m.name) && !screenMesh) screenMesh = m;
+        if (/^Switch/.test(m.name) && !switchMesh) switchMesh = m;
+        if (/^Book/.test(m.name) && !bookMesh) bookMesh = m;
+      });
+      // fallback screen detection: flat panel
+      if (!screenMesh) {
+        const box = new THREE.Box3(), s = new THREE.Vector3();
+        model.traverse((o) => {
+          const m = o as THREE.Mesh;
+          if (!m.isMesh || screenMesh) return;
+          box.setFromObject(m); box.getSize(s);
+          if (Math.min(s.x, s.y, s.z) < 0.03 && Math.max(s.x, s.z) > 0.3) screenMesh = m;
+        });
+      }
+      if (screenMesh) {
+        // paint OS onto the screen mesh's material
+        const sm = screenMesh as THREE.Mesh;
+        sm.material = new THREE.MeshBasicMaterial({ map: osTex });
+        const box = new THREE.Box3().setFromObject(sm);
+        const c = box.getCenter(new THREE.Vector3());
+        const sz = box.getSize(new THREE.Vector3());
+        const thin = Math.min(sz.x, sz.y, sz.z);
+        const front = new THREE.Vector3(CAM_POS.x - c.x, 0, CAM_POS.z - c.z).normalize();
+        // slightly enlarge the screen mesh toward the viewer so the texture covers the bezel
+        sm.scale.multiplyScalar(1.0);
+        setMsg(`screen: ${sm.name} · ${thin.toFixed(2)}m thin`);
+      } else setMsg("screen not found");
+      // fly-in
+      controls.enabled = false;
+      gsap.to(camera.position, { ...CAM_POS, duration: 1.6, ease: "power3.out", onUpdate: () => controls.update(), onComplete: () => (controls.enabled = true) });
+    }, undefined, (e) => setMsg("model failed: " + e));
+
+    const fly = (pos: THREE.Vector3, look: THREE.Vector3, done?: () => void) => {
+      dummy.position.copy(pos); dummy.lookAt(look);
+      controls.enabled = false;
+      gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 1.5, ease: "power3.inOut" });
+      gsap.to(camera.rotation, { x: dummy.rotation.x, y: dummy.rotation.y, z: dummy.rotation.z, duration: 1.5, ease: "power3.inOut", onUpdate: () => controls.update(), onComplete: () => { controls.enabled = true; done?.(); } });
+    };
+
+    const onClick = (e: MouseEvent) => {
+      ptr.x = (e.clientX / el.clientWidth) * 2 - 1;
+      ptr.y = -(e.clientY / el.clientHeight) * 2 + 1;
+      ray.setFromCamera(ptr, camera);
+      const hits = ray.intersectObjects(scene.children, true);
+      if (!hits.length) return;
+      const hit = hits[0].object as THREE.Mesh;
+      if (screenMesh && (hit === screenMesh || hit === hits[0].object && /Stand|Cube\.002/.test(hit.name))) {
+        const box = new THREE.Box3().setFromObject(screenMesh!);
+        const c = box.getCenter(new THREE.Vector3());
+        const front = new THREE.Vector3(CAM_POS.x - c.x, 0, CAM_POS.z - c.z).normalize();
+        fly(c.clone().addScaledVector(front, 0.32).add(new THREE.Vector3(0, 0.02, 0)), c, onEnter);
+      } else if (switchMesh && hit === switchMesh) {
+        lightsOn = !lightsOn;
+        gsap.to(amb, { intensity: lightsOn ? 0.7 : 0.15, duration: 0.6 });
+        gsap.to(dir, { intensity: lightsOn ? 1.6 : 0.3, duration: 0.6 });
+        gsap.to(scene.background as THREE.Color, { r: lightsOn ? 0.04 : 0.01, g: lightsOn ? 0.04 : 0.01, b: lightsOn ? 0.07 : 0.03, duration: 0.6 });
+      } else if (bookMesh && hit === bookMesh) {
+        const c = new THREE.Box3().setFromObject(bookMesh!).getCenter(new THREE.Vector3());
+        fly(c.clone().add(new THREE.Vector3(0.05, 0.42, 0.28)), c.clone());
+      }
+    };
+    el.addEventListener("click", onClick);
+
+    const loop = () => {
+      if (disposed) return;
+      raf = requestAnimationFrame(loop);
+      frames++;
+      if (performance.now() - lastDraw > 120) { lastDraw = performance.now(); drawOS(osCtx, osCanvas.width, osCanvas.height); osTex.needsUpdate = true; }
+      controls.update();
+      renderer.render(scene, camera);
+      if (frames % 30 === 0) setTicks(frames);
+    };
+    loop();
+
+    const onResize = () => {
+      camera.aspect = el.clientWidth / el.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(el.clientWidth, el.clientHeight);
+    };
+    addEventListener("resize", onResize);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onEnter(); };
+    addEventListener("keydown", onKey);
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(raf);
+      removeEventListener("resize", onResize);
+      removeEventListener("keydown", onKey);
+      el.removeEventListener("click", onClick);
+      renderer.dispose();
+      el.removeChild(renderer.domElement);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[120] bg-black flex flex-col">
-      <Canvas shadows="soft" dpr={[1, 1.5]} camera={{ fov: 75, near: 0.01, far: 1000, position: [2.2, 1.6, 2.2] }} gl={{ antialias: true }} onPointerMissed={() => {}}>
-        <Suspense fallback={null}>
-          <SceneBridge
-            onTick={(t: number) => setTicks(t)}
-            onEnter={onEnter}
-            focus={focus}
-            setFocus={setFocus}
-            lightsOn={lightsOn}
-            onToggleLights={() => setLightsOn((v) => !v)}
-            onFocusBook={(pos: THREE.Vector3) => { setFocusPos({ pos: pos.clone().add(new THREE.Vector3(0.05, 0.42, 0.28)), look: pos.clone() }); setFocus("book"); }}
-          />
-        </Suspense>
-        <CameraRig controls={controls} focus={focus} focusPos={focusPos} onEnter={onEnter} onReset={() => setFocus("")} />
-        <OrbitControls
-          ref={controls}
-          makeDefault
-          enablePan={false}
-          enableDamping
-          dampingFactor={0.08}
-          minDistance={0.9}
-          maxDistance={1.6}
-          minAzimuthAngle={0.2}
-          maxAzimuthAngle={Math.PI * 0.78}
-          minPolarAngle={0.3}
-          maxPolarAngle={Math.PI / 2}
-        />
-      </Canvas>
+      <div ref={host} className="flex-1" />
       <div className="absolute top-3 left-4 text-[11px] uppercase tracking-[.15em] text-[var(--text-tertiary)] space-x-3 pointer-events-none">
-        <span><b className="text-[var(--accent)]">drag</b> look · <b className="text-[var(--accent)]">scroll</b> zoom</span>
+        <span><b className="text-[var(--accent)]">drag</b> look · <b className="text-[var(--accent)]">scroll</b> zoom · click: monitor / switch / book</span>
         <span>frames: <b className="text-[var(--terminal-fg)]">{ticks}</b></span>
+        <span>{msg}</span>
       </div>
-      <div className="absolute top-3 right-4 flex gap-2">
-        <button onClick={() => setLightsOn((v) => !v)} className={`px-3 py-1 text-[11px] font-bold uppercase border ${lightsOn ? "bg-[#fbbf24] text-black border-[#fbbf24]" : "text-[#fbbf24] border-[#fbbf24]"}`}>light {lightsOn ? "on" : "off"}</button>
-        <button onClick={() => { setFocus("reset"); }} className="px-3 py-1 border border-[var(--border-strong)] text-[var(--text-secondary)] text-[11px] uppercase">reset view</button>
+      <div className="absolute top-3 right-4">
         <button onClick={onEnter} className="px-3 py-1 bg-[var(--accent)] text-black text-[11px] font-bold uppercase">take the desk (esc)</button>
-      </div>
-      <div className="absolute bottom-4 left-4 text-[10.5px] uppercase tracking-[.14em] text-[var(--text-tertiary)] pointer-events-none">
-        click: monitor → zoom into os · light switch → lights · book → focus
       </div>
     </div>
   );
-}
-
-function SceneBridge({ onTick, onEnter, focus, setFocus, lightsOn, onToggleLights, onFocusBook }: any) {
-  const { scene } = useGLTF(MODEL_URL);
-  useEffect(() => {
-    const info = analyze(scene);
-    if (info.screen) (window as any).__screenInfo = info.screen;
-  }, [scene]);
-  return <Scene onTick={onTick} onEnter={onEnter} focus={focus} setFocus={setFocus} lightsOn={lightsOn} onToggleLights={onToggleLights} onFocusBook={onFocusBook} />;
 }
