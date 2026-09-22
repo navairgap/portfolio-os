@@ -101,8 +101,8 @@ function Scene({ onTick, onEnter, onReady }: any) {
     <primitive object={scene} />
     {screen && (
       <group position={screen.pos.toArray()} quaternion={screen.quat}>
-        <mesh><planeGeometry args={[screen.w, screen.h]} /><meshBasicMaterial color="#000" side={THREE.DoubleSide} /></mesh>
-        <Html transform occlude position={[0, 0, 0.002]} scale={screen.w / 1024} zIndexRange={[10, 0]}>
+        <mesh><planeGeometry args={[screen.w * 1.06, screen.h * 1.06]} /><meshBasicMaterial color="#000" side={THREE.DoubleSide} /></mesh>
+        <Html transform position={[0, 0, 0.012]} scale={screen.w / 1024}>
           <ScreenPreview onEnter={onEnter} />
         </Html>
       </group>
