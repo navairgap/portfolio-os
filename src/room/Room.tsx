@@ -63,9 +63,11 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#0b0b12");
     const camera = new THREE.PerspectiveCamera(75, el.clientWidth / el.clientHeight, 0.01, 1000);
-    camera.position.set(2.2, 1.6, 2.2);
+    camera.position.set(CAM_POS.x * 1.28, CAM_POS.y * 1.28 + 0.15, CAM_POS.z * 1.28);
+    camera.lookAt(0, 0.9, 0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0.9, 0);
     controls.enablePan = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -140,7 +142,8 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
       } else setMsg("screen not found");
       // fly-in
       controls.enabled = false;
-      gsap.to(camera.position, { ...CAM_POS, duration: 1.6, ease: "power3.out", onUpdate: () => controls.update(), onComplete: () => (controls.enabled = true) });
+      gsap.to(camera.position, { ...CAM_POS, duration: 1.6, ease: "power3.out" });
+      gsap.to(camera.rotation, { x: -0.8310687859940357, y: 0.9380973951104649, z: 0.7243388791233853, duration: 1.6, ease: "power3.out", onUpdate: () => controls.update(), onComplete: () => (controls.enabled = true) });
     }, undefined, (e) => setMsg("model failed: " + e));
 
     const fly = (pos: THREE.Vector3, look: THREE.Vector3, done?: () => void) => {
