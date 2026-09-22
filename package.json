@@ -28,7 +28,8 @@
     "three": "0.158.0",
     "@react-three/fiber": "8.15.12",
     "@react-three/drei": "9.92.7",
-    "@react-three/postprocessing": "2.15.13"
+    "@react-three/postprocessing": "2.15.13",
+    "gsap": "3.12.5"
   },
   "devDependencies": {
     "@types/react": "18.2.47",
