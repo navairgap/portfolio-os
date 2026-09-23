@@ -29,7 +29,7 @@ const NIGHT: Record<Section, string> = {
 };
 
 /* desk-monitor anchor, derived from the model's Fourth (desk) section */
-const DESK = { x: -0.816, y: 3.42, z: -3.02 }; // panel center, wall-mounted above the desk
+const DESK = { x: -0.816, y: 3.32, z: -3.28 }; // panel center, right at the baked desk monitor
 const LOOK = { x: -0.816, y: 2.9, z: -3.3 };
 
 function RoomModel({ lights }: { lights: boolean }) {
@@ -52,7 +52,7 @@ function RoomModel({ lights }: { lights: boolean }) {
       if (!mesh.isMesh) return;
       const name = mesh.name;
       // interaction proxies + the author's name display are not scenery
-      if (name.includes("Raycaster") || name.includes("Name_Letter") || name === "Screen") {
+      if (name.includes("Raycaster") || name.startsWith("Name_Letter") || name.startsWith("Screen")) {
         mesh.visible = false;
         return;
       }
@@ -94,7 +94,7 @@ function Monitor({ onZoomStart, entering, children }: { onZoomStart: () => void;
     if (entering) return;
     onZoomStart();
     if (controls) controls.enabled = false;
-    gsap.to(camera.position, { x: DESK.x, y: DESK.y, z: DESK.z + 1.05, duration: 1.5, ease: "power3.inOut" });
+    gsap.to(camera.position, { x: DESK.x, y: DESK.y, z: DESK.z + 1.0, duration: 1.5, ease: "power3.inOut" });
     gsap.to(camera, {
       fov: 32, duration: 1.5, ease: "power3.inOut",
       onUpdate: () => (camera as THREE.PerspectiveCamera).updateProjectionMatrix(),
@@ -108,23 +108,33 @@ function Monitor({ onZoomStart, entering, children }: { onZoomStart: () => void;
         onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
         onPointerOut={() => setHovered(false)}
       >
-        {/* slim bezel, wall-mounted over the desk */}
-        <mesh>
-          <boxGeometry args={[1.5, 0.92, 0.04]} />
+        {/* slim bezel covering the baked monitor */}
+        <mesh castShadow>
+          <boxGeometry args={[1.44, 0.88, 0.05]} />
           <meshStandardMaterial color="#0a0a0f" metalness={0.5} roughness={0.35} />
         </mesh>
-        <mesh position={[0, 0, -0.026]}>
-          <boxGeometry args={[1.54, 0.96, 0.012]} />
-          <meshStandardMaterial color="#000" emissive="#8b5cff" emissiveIntensity={1.6} />
+        {/* RGB back glow */}
+        <mesh position={[0, 0, -0.032]}>
+          <boxGeometry args={[1.4, 0.84, 0.012]} />
+          <meshStandardMaterial color="#000" emissive="#8b5cff" emissiveIntensity={1.4} />
+        </mesh>
+        {/* stand down to the desk */}
+        <mesh position={[0, -0.63, -0.01]} castShadow>
+          <boxGeometry args={[0.09, 0.4, 0.05]} />
+          <meshStandardMaterial color="#101014" metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, -0.82, 0.02]} castShadow>
+          <boxGeometry args={[0.4, 0.025, 0.26]} />
+          <meshStandardMaterial color="#101014" metalness={0.5} roughness={0.4} />
         </mesh>
         {/* screen */}
-        <mesh position={[0, 0, 0.021]}>
-          <planeGeometry args={[1.42, 0.84]} />
+        <mesh position={[0, 0, 0.027]}>
+          <planeGeometry args={[1.36, 0.8]} />
           <meshBasicMaterial color="#010103" />
         </mesh>
 
         {/* the OS itself, running in the screen */}
-        <Html transform position={[0, 0, 0.025]} scale={1.42 / 1024} zIndexRange={[30, 0]}>
+        <Html transform position={[0, 0, 0.032]} scale={1.36 / 1024} zIndexRange={[16777271, 0]}>
           <div style={{ width: 1024, height: 592, overflow: "hidden", background: "#000", position: "relative" }}>
             {children}
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 99999,
@@ -170,7 +180,7 @@ export default function Room({ onEnter, children }: { onEnter: () => void; child
     >
       <Canvas
         dpr={[1, 1.75]}
-        camera={{ position: [-0.816, 3.2, -0.9], fov: 55, near: 0.1, far: 60 }}
+        camera={{ position: [-0.816, 3.1, -1.5], fov: 55, near: 0.1, far: 60 }}
         gl={{ antialias: true, toneMappingExposure: 1.1 }}
       >
         <Skybox />

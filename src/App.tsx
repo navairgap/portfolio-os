@@ -73,7 +73,7 @@ export default function App() {
         {phase === "boot" && <BootSequence key="boot" onDone={onBootDone} />}
       </AnimatePresence>
 
-      {phase === "desktop" && !roomView && <Desktop />}
+      {phase === "desktop" && <Desktop />}
       {phase === "desktop" && roomView && (
         <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
           <Room onEnter={() => setRoomView(false)}><Desktop /></Room>
