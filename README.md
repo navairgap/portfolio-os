@@ -114,17 +114,3 @@ reduced-motion skip the room entirely (CSS CRT fullscreen); WebGL failure exits 
 desktop. Post stack (Bloom/ChromaticAberration/Vignette/Noise) disables on
 reduced-motion. ACESFilmic tone mapping, exposure 1.2, FogExp2, single shadow-casting
 lamp, DPR ≤ 1.5.
-
-## Credits
-
-This room experience is adapted from **[sooahs-room-folio](https://github.com/andrewwoan/sooahs-room-folio)**
-by [Andrew Woan](https://github.com/andrewwoan), used under the
-[MIT License](https://github.com/andrewwoan/sooahs-room-folio/blob/main/LICENSE).
-
-Ported from the original: the baked Blender room (day/night texture sets),
-the day/night shader crossfade, the hover/click interaction system with
-bubble sounds, the playable piano (24 notes), the background music, the
-ambient wall screen, the swaying chair and the pop-in intro animation.
-
-Original to this repo: the OS running live in the desk monitor, the
-click-to-zoom fullscreen handoff, keyboard shortcuts and app integration.
