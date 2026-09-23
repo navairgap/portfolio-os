@@ -315,7 +315,7 @@ function Desk({ night }: { night: boolean }) {
         <meshStandardMaterial color="#1c1c22" roughness={0.4} />
       </mesh>
       {/* controller on a stand, desk right */}
-      <group position={[dx + 0.72, dy + 0.05, dz + 0.1]} rotation={[0, -0.6, 0]}>
+      <group position={[dx - 0.68, dy + 0.05, dz + 0.26]} rotation={[0, 0.5, 0]}>
         <RoundedBox args={[0.19, 0.034, 0.105]} radius={0.014} castShadow>
           <meshStandardMaterial color="#15151b" roughness={0.55} />
         </RoundedBox>
@@ -330,16 +330,16 @@ function Desk({ night }: { night: boolean }) {
           <meshStandardMaterial color="#000" emissive={NEON.purple} emissiveIntensity={night ? 0.9 : 0.2} />
         </mesh>
       </group>
-      {/* moon lamp, back-right corner of desk */}
-      <mesh position={[dx + 0.85, dy + 0.16, dz - 0.24]}>
+      {/* moon lamp, front-right corner of desk */}
+      <mesh position={[dx + 0.85, dy + 0.16, dz + 0.35]}>
         <sphereGeometry args={[0.08, 24, 24]} />
         <meshStandardMaterial color="#000" emissive="#ffb066" emissiveIntensity={2.4} />
       </mesh>
-      <mesh position={[dx + 0.85, dy + 0.05, dz - 0.24]}>
+      <mesh position={[dx + 0.85, dy + 0.05, dz + 0.35]}>
         <cylinderGeometry args={[0.035, 0.055, 0.06, 16]} />
         <meshStandardMaterial color="#1c1c22" roughness={0.5} />
       </mesh>
-      <pointLight position={[dx + 0.85, dy + 0.3, dz - 0.2]} color="#ffb066" intensity={night ? 0.6 : 0.15} distance={2.6} decay={2} />
+      <pointLight position={[dx + 0.85, dy + 0.3, dz + 0.4]} color="#ffb066" intensity={night ? 0.6 : 0.15} distance={2.6} decay={2} />
       {/* headphones on stand, back-left */}
       <group position={[dx - 0.82, dy + 0.03, dz - 0.2]} rotation={[0, 0.6, 0]}>
         <mesh position={[0, 0.1, 0]}>
@@ -386,9 +386,8 @@ function PCTower({ night, on, onToggle }: { night: boolean; on: boolean; onToggl
     if (hub.current) hub.current.rotation.z -= 3.2 * delta;
   });
 
-  const px = 1.45, pz = -2.55;
   return (
-    <group position={[px, 0, pz]} rotation={[0, -0.25, 0]}>
+    <group position={[0.78, 0.78, -2.28]} rotation={[0, -0.25, 0]}>
       <mesh position={[0, 0.38, 0]} castShadow>
         <boxGeometry args={[0.34, 0.76, 0.62]} />
         <meshStandardMaterial color="#121218" metalness={0.55} roughness={0.45} />
@@ -476,7 +475,7 @@ function Chair() {
         <meshStandardMaterial color="#18181f" roughness={0.75} />
       </RoundedBox>
       <RoundedBox args={[0.48, 0.055, 0.44]} radius={0.026} position={[0, 0.485, 0.01]}>
-        <meshStandardMaterial color="#1e1e27" roughness={0.85} />
+        <meshStandardMaterial color="#c11430" roughness={0.8} />
       </RoundedBox>
       {/* backrest */}
       <group position={[0, 0.52, -0.26]} rotation={[-0.13, 0, 0]}>
@@ -484,13 +483,13 @@ function Chair() {
           <meshStandardMaterial color="#18181f" roughness={0.75} />
         </RoundedBox>
         <RoundedBox args={[0.42, 0.62, 0.055]} radius={0.028} position={[0, 0.38, 0.042]}>
-          <meshStandardMaterial color="#1f1f29" roughness={0.85} />
+          <meshStandardMaterial color="#c11430" roughness={0.8} />
         </RoundedBox>
         <RoundedBox args={[0.28, 0.12, 0.085]} radius={0.035} position={[0, 0.82, 0.02]}>
-          <meshStandardMaterial color="#1e1e27" roughness={0.85} />
+          <meshStandardMaterial color="#c11430" roughness={0.8} />
         </RoundedBox>
         <RoundedBox args={[0.3, 0.13, 0.095]} radius={0.045} position={[0, 0.1, 0.055]}>
-          <meshStandardMaterial color="#24242e" roughness={0.9} />
+          <meshStandardMaterial color="#141419" roughness={0.9} />
         </RoundedBox>
         <NeonStrip p={[-0.235, 0.4, 0.02]} s={[0.011, 0.7, 0.011]} c={NEON.red} i={1.7} />
         <NeonStrip p={[0.235, 0.4, 0.02]} s={[0.011, 0.7, 0.011]} c={NEON.red} i={1.7} />
@@ -604,7 +603,7 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
         {/* bezel */}
         <mesh castShadow>
           <boxGeometry args={[SCREEN_W + 0.1, SCREEN_H + 0.1, 0.05]} />
-          <meshStandardMaterial color="#0a0a0f" metalness={0.5} roughness={0.35} />
+          <meshStandardMaterial color="#191922" metalness={0.6} roughness={0.3} />
         </mesh>
         {/* RGB back glow */}
         <mesh position={[0, 0, -0.034]}>
@@ -615,6 +614,11 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
         <mesh position={[0, 0, 0.026]}>
           <planeGeometry args={[SCREEN_W, SCREEN_H]} />
           <meshBasicMaterial color="#010103" />
+        </mesh>
+        {/* power LED on the bottom bezel */}
+        <mesh position={[0, -(SCREEN_H + 0.1) / 2 + 0.018, 0.027]}>
+          <circleGeometry args={[0.009, 12]} />
+          <meshStandardMaterial color="#000" emissive="#4da3ff" emissiveIntensity={2.4} />
         </mesh>
         {/* the OS */}
         <Html transform position={[0, 0, 0.031]} scale={SCREEN_W / 1024} zIndexRange={[16777271, 0]}>
@@ -632,7 +636,7 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
       </mesh>
       <mesh position={[0, -(SCREEN_H + 0.1) / 2 - 0.3, 0.03]} castShadow>
         <boxGeometry args={[0.42, 0.024, 0.28]} />
-        <meshStandardMaterial color="#101014" metalness={0.5} roughness={0.4} />
+        <meshStandardMaterial color="#1c1c26" metalness={0.65} roughness={0.3} />
       </mesh>
       {/* screen glow */}
       <pointLight position={[0, -0.3, 0.9]} color="#9db8ff" intensity={night ? 1.5 : 0.4} distance={5} decay={2} />
