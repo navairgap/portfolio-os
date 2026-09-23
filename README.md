@@ -1,9 +1,5 @@
 # navairgap OS — a browser desktop that is also a portfolio
 
-<p>
-  <img src="https://github.com/navairgap/portfolio-os/actions/workflows/ci.yml/badge.svg" alt="CI">
-</p>
-
 A working Linux-inspired OS that runs entirely in the browser. Every window,
 file, and command is part of the portfolio: open Projects/, run `projects` in
 the terminal, or read Documents/resume.pdf. **Defense is offense, inverted.**
@@ -118,3 +114,11 @@ reduced-motion skip the room entirely (CSS CRT fullscreen); WebGL failure exits 
 desktop. Post stack (Bloom/ChromaticAberration/Vignette/Noise) disables on
 reduced-motion. ACESFilmic tone mapping, exposure 1.2, FogExp2, single shadow-casting
 lamp, DPR ≤ 1.5.
+
+## Credits
+
+- Room environment: **[sooahs-room-folio](https://github.com/andrewwoan/sooahs-room-folio)**
+  by [Andrew Woan](https://github.com/andrewwoan), used under the
+  [MIT License](https://github.com/andrewwoan/sooahs-room-folio/blob/main/LICENSE)
+  (baked Blender scene with day/night texture sets). The OS monitor, camera
+  work and interactions are original to this repo.
