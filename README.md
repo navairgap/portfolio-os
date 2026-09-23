@@ -1,5 +1,9 @@
 # navairgap OS — a browser desktop that is also a portfolio
 
+<p>
+  <img src="https://github.com/navairgap/portfolio-os/actions/workflows/ci.yml/badge.svg" alt="CI">
+</p>
+
 A working Linux-inspired OS that runs entirely in the browser. Every window,
 file, and command is part of the portfolio: open Projects/, run `projects` in
 the terminal, or read Documents/resume.pdf. **Defense is offense, inverted.**
