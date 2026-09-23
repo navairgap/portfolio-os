@@ -126,8 +126,8 @@ const NEON = { purple: "#8b5cff", pink: "#ff2bd6", red: "#ff2b3a", blue: "#3d6bf
 
 /* desk anchor — everything derives from this */
 const DESK_POS: V3 = [0, 0.75, -2.2];       // desk center
-const MONITOR_POS: V3 = [0, 1.42, -2.52];   // screen center
-const SCREEN_W = 1.3, SCREEN_H = 0.74;
+const MONITOR_POS: V3 = [0, 1.46, -2.52];   // screen center
+const SCREEN_W = 1.52, SCREEN_H = 0.86;
 const CHAIR_POS: V3 = [0, 0, -1.15];        // chair center, faces desk (+... toward -z)
 const CAM_POS: V3 = [0.4, 1.75, 0.6];       // default camera
 const LOOK_AT: V3 = [0, 1.2, -2.2];         // orbit target
@@ -157,7 +157,7 @@ function Shell({ night }: { night: boolean }) {
   const city = useMemo(() => makeCityTexture(), []);
 
   const wallColor = night ? "#26262e" : "#d9d5cc";
-  const floorTint = night ? "#777" : "#bbb";
+  const floorTint = night ? "#8a8a8a" : "#e6dccd";
   const ceilColor = night ? "#1c1c22" : "#cfccc4";
 
   return (
@@ -284,13 +284,13 @@ function Desk({ night }: { night: boolean }) {
       {/* top: 2.0 x 0.06 x 0.8 at desk height */}
       <mesh position={[dx, dy, dz]} castShadow receiveShadow>
         <boxGeometry args={[2.0, 0.06, 0.8]} />
-        <meshStandardMaterial color="#241a12" roughness={0.45} metalness={0.05} />
+        <meshStandardMaterial color={night ? "#241a12" : "#8a6242"} roughness={0.45} metalness={0.05} />
       </mesh>
       {/* legs */}
       {[-0.93, 0.93].map((ox) => (
         <mesh key={ox} position={[dx + ox, dy / 2 - 0.02, dz]} castShadow>
           <boxGeometry args={[0.07, dy - 0.04, 0.7]} />
-          <meshStandardMaterial color="#1a130d" roughness={0.65} />
+          <meshStandardMaterial color={night ? "#1a130d" : "#6e4c30"} roughness={0.65} />
         </mesh>
       ))}
       {/* pink under-glow */}
@@ -610,10 +610,10 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
           <boxGeometry args={[SCREEN_W + 0.04, SCREEN_H + 0.04, 0.012]} />
           <meshStandardMaterial color="#000" emissive="#8b5cff" emissiveIntensity={night ? 1.5 : 0.4} />
         </mesh>
-        {/* screen */}
+        {/* screen backlight — reads as "display on" even when content is dark */}
         <mesh position={[0, 0, 0.026]}>
           <planeGeometry args={[SCREEN_W, SCREEN_H]} />
-          <meshBasicMaterial color="#010103" />
+          <meshBasicMaterial color="#0b1220" />
         </mesh>
         {/* power LED on the bottom bezel */}
         <mesh position={[0, -(SCREEN_H + 0.1) / 2 + 0.018, 0.027]}>
@@ -624,6 +624,9 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
         <Html transform position={[0, 0, 0.031]} scale={SCREEN_W / 1024} zIndexRange={[16777271, 0]}>
           <div style={{ width: 1024, height: 592, overflow: "hidden", background: "#000", position: "relative" }}>
             {children}
+            {/* live indicator */}
+            <div style={{ position: "absolute", top: 6, right: 10, color: "#2fbf71",
+                          font: "700 13px monospace", zIndex: 99999, pointerEvents: "none" }}>● OS</div>
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 99999,
                           background: "repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 3px)" }} />
           </div>
