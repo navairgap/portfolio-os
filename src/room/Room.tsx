@@ -14,6 +14,28 @@ import type { ReactNode } from "react";
 
 const MODEL_URL = "models/gaming_room.glb";
 
+function makeSignTexture(): THREE.CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = 2048; c.height = 512;
+  const g = c.getContext("2d")!;
+  g.clearRect(0, 0, 2048, 512);
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.font = "700 210px 'JetBrains Mono', monospace";
+  g.shadowColor = "#8b5cff";
+  g.shadowBlur = 60;
+  g.fillStyle = "#d9d4ff";
+  g.fillText("navairgap", 1024, 218);
+  g.shadowBlur = 24;
+  g.font = "400 64px 'JetBrains Mono', monospace";
+  g.fillStyle = "#8b8ba8";
+  g.fillText("defense is offense, inverted", 1024, 396);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
 interface Measured {
   panelPos: THREE.Vector3;
   facing: THREE.Vector3;
@@ -78,6 +100,55 @@ function useMeasurements(gltf: { scene: THREE.Group }) {
     console.log("[room] measured", { panelPos: panelPos.toArray().map((v) => +v.toFixed(2)), w: +w.toFixed(2), h: +h.toFixed(2) });
   }, [gltf.scene]);
   return m;
+}
+
+function useBranding(gltf: { scene: THREE.Group }) {
+  const [sign, setSign] = useState<{ pos: THREE.Vector3; w: number; h: number; facing: THREE.Vector3 } | null>(null);
+  useEffect(() => {
+    const scene = gltf.scene;
+    scene.updateMatrixWorld(true);
+    let titleBox: THREE.Box3 | null = null;
+    const center = new THREE.Box3().setFromObject(scene).getCenter(new THREE.Vector3());
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const n = mesh.name.toLowerCase();
+      if (n.includes("author")) mesh.visible = false;      // original creator credit — removed per request
+      if (n.includes("title")) {
+        mesh.visible = false;                               // replaced with our sign
+        titleBox = new THREE.Box3().setFromObject(mesh);
+      }
+    });
+    if (titleBox) {
+      const tb = titleBox as THREE.Box3;
+      const c = tb.getCenter(new THREE.Vector3());
+      const sz = tb.getSize(new THREE.Vector3());
+      const w = Math.max(sz.x, sz.y, sz.z) * 1.1;
+      const facing = center.clone().sub(c);
+      facing.y = 0;
+      if (facing.lengthSq() < 1e-6) facing.set(0, 0, 1);
+      facing.normalize();
+      setSign({ pos: c, w, h: w * 0.25, facing });
+    }
+  }, [gltf.scene]);
+  return sign;
+}
+
+function Sign({ sign }: { sign: { pos: THREE.Vector3; w: number; h: number; facing: THREE.Vector3 } }) {
+  const tex = useMemo(() => makeSignTexture(), []);
+  const quat = useMemo(() => {
+    const m = new THREE.Matrix4().lookAt(new THREE.Vector3(), sign.facing, new THREE.Vector3(0, 1, 0));
+    return new THREE.Quaternion().setFromRotationMatrix(m);
+  }, [sign.facing]);
+  return (
+    <group position={sign.pos} quaternion={quat}>
+      <mesh>
+        <planeGeometry args={[sign.w, sign.h]} />
+        <meshBasicMaterial map={tex} transparent side={THREE.DoubleSide} />
+      </mesh>
+      <pointLight position={[0, 0, 1.5]} color="#8b5cff" intensity={0.6} distance={8} decay={2} />
+    </group>
+  );
 }
 
 function Model({ gltf, night }: { gltf: { scene: THREE.Group }; night: boolean }) {
@@ -161,6 +232,7 @@ export default function Room({ onEnter, children }: { onEnter: () => void; child
   const [entering, setEntering] = useState(false);
   const [fade, setFade] = useState(false);
   const m = useMeasurements(gltf);
+  const sign = useBranding(gltf);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -182,6 +254,7 @@ export default function Room({ onEnter, children }: { onEnter: () => void; child
         <Lights night={night} />
         <Model gltf={gltf} night={night} />
         {m && <OSMonitor m={m} onZoomStart={zoom} entering={entering}>{children}</OSMonitor>}
+        {sign && <Sign sign={sign} />}
         {m && (
           <OrbitControls makeDefault target={m.lookAt.toArray() as [number, number, number]}
             minDistance={m.h} maxDistance={Math.max(m.w, m.h) * 8}
