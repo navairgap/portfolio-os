@@ -117,8 +117,14 @@ lamp, DPR ≤ 1.5.
 
 ## Credits
 
-- Room environment: **[sooahs-room-folio](https://github.com/andrewwoan/sooahs-room-folio)**
-  by [Andrew Woan](https://github.com/andrewwoan), used under the
-  [MIT License](https://github.com/andrewwoan/sooahs-room-folio/blob/main/LICENSE)
-  (baked Blender scene with day/night texture sets). The OS monitor, camera
-  work and interactions are original to this repo.
+This room experience is adapted from **[sooahs-room-folio](https://github.com/andrewwoan/sooahs-room-folio)**
+by [Andrew Woan](https://github.com/andrewwoan), used under the
+[MIT License](https://github.com/andrewwoan/sooahs-room-folio/blob/main/LICENSE).
+
+Ported from the original: the baked Blender room (day/night texture sets),
+the day/night shader crossfade, the hover/click interaction system with
+bubble sounds, the playable piano (24 notes), the background music, the
+ambient wall screen, the swaying chair and the pop-in intro animation.
+
+Original to this repo: the OS running live in the desk monitor, the
+click-to-zoom fullscreen handoff, keyboard shortcuts and app integration.
