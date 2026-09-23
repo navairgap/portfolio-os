@@ -10,7 +10,6 @@ import type { OSPhase } from "./types";
 import LockScreen from "./features/lockScreen/LockScreen";
 import RecoveryShell from "./features/recovery/RecoveryShell";
 import ErrorBoundary from "./system/ErrorBoundary";
-import { RoomBoundary } from "./room/RoomBoundary";
 const Room = lazy(() => import("./room/Room"));
 
 export default function App() {
@@ -52,7 +51,7 @@ export default function App() {
     setPhase("desktop");
   }, [setPhase]);
 
-  const [roomView, setRoomView] = useState(false);
+  const [roomView, setRoomView] = useState(true);
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.key === "r" || e.key === "R") && useSession.getState().phase === "desktop" && !e.ctrlKey && !e.metaKey && !(e.target as HTMLElement)?.closest("input,textarea")) setRoomView((v) => !v);
@@ -74,10 +73,10 @@ export default function App() {
         {phase === "boot" && <BootSequence key="boot" onDone={onBootDone} />}
       </AnimatePresence>
 
-      {phase === "desktop" && <Desktop />}
+      {phase === "desktop" && !roomView && <Desktop />}
       {phase === "desktop" && roomView && (
         <Suspense fallback={<div className="fixed inset-0 z-[120] bg-black grid place-items-center text-[var(--terminal-fg)] text-[13px] animate-pulse">initializing room...</div>}>
-          <Room onEnter={() => setRoomView(false)} />
+          <Room onEnter={() => setRoomView(false)}><Desktop /></Room>
         </Suspense>
       )}
       {phase === "lock" && <Desktop />}
