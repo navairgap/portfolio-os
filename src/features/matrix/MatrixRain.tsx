@@ -32,7 +32,7 @@ export default function MatrixRain({ wallpaper = false, accent = "#3fbf7f", onPr
   }, [wallpaper, accent]);
 
   return (
-    <div className={`fixed inset-0 z-[400] pointer-events-auto transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`} style={{ background: "transparent" }}
+    <div className={`fixed inset-0 transition-opacity duration-700 ${wallpaper ? "z-[1] pointer-events-none" : "z-[400] pointer-events-auto"} ${fading ? "opacity-0" : "opacity-100"}`} style={{ background: "transparent" }}
       onClick={() => { if (wallpaper || showPrompt) return; setFading(true); if (onPrompt) setTimeout(() => onPrompt(false), 700); }}>
       <canvas ref={ref} className="absolute inset-0" />
       {!wallpaper && showPrompt && (
