@@ -40,6 +40,9 @@ function makeWoodTexture(): THREE.CanvasTexture {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(3, 3);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -61,6 +64,9 @@ function makePosterTexture(title: string, sub: string, accent: string): THREE.Ca
   g.fillText(sub, 192, 280);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -79,6 +85,9 @@ function makeNeonTexture(text: string, color: string): THREE.CanvasTexture {
   g.fillText(text, 512, 130);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -115,6 +124,9 @@ function makeCityTexture(): THREE.CanvasTexture {
   g.fill();
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
   return t;
 }
 
@@ -230,7 +242,7 @@ function Shell({ night }: { night: boolean }) {
       </mesh>
 
       {/* neon sign above desk */}
-      <mesh position={[0, 2.45, -2.96]}>
+      <mesh position={[0, 2.56, -2.96]}>
         <planeGeometry args={[1.15, 0.29]} />
         <meshStandardMaterial color="#000" emissive="#ffffff" emissiveMap={neon} emissiveIntensity={night ? 2.2 : 0.7} />
       </mesh>
@@ -250,23 +262,26 @@ function Shell({ night }: { night: boolean }) {
 function Lights({ night }: { night: boolean }) {
   return (
     <>
-      <ambientLight intensity={night ? 0.32 : 0.75} />
-      <hemisphereLight args={night ? ["#2a2440", "#0c0c10", 0.5] : ["#cfd6ff", "#8a8478", 0.85]} />
+      <ambientLight intensity={night ? 0.35 : 0.45} color={night ? "#1a1a2e" : "#ffffff"} />
+      <hemisphereLight args={night ? ["#1a1a2e", "#0a0a12", 0.55] : ["#cfd6ff", "#8a8478", 0.7]} />
       {/* main ceiling light */}
       <mesh position={[0, 3.17, -0.6]}>
         <boxGeometry args={[1.4, 0.04, 0.5]} />
-        <meshStandardMaterial color="#000" emissive="#fff6e8" emissiveIntensity={night ? 0.15 : 2.4} />
+        <meshStandardMaterial color="#000" emissive="#fff6e8" emissiveIntensity={night ? 0.15 : 1.7} />
       </mesh>
       <pointLight
         position={[0, 2.95, -0.6]}
         color="#fff2df"
-        intensity={night ? 0.15 : 1.6}
+        intensity={night ? 0.15 : 1.1}
         distance={11}
         decay={2}
         castShadow
         shadow-mapSize={[2048, 2048]}
-        shadow-bias={-0.0004}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
       />
+      {/* subtle warm ceiling fill */}
+      <pointLight position={[0, 3.0, 0.3]} color="#ffd4a0" intensity={night ? 0.3 : 0} distance={8} decay={2} />
       {/* warm fill from the entrance */}
       <pointLight position={[1.8, 2.2, 2.2]} color="#ffd9b0" intensity={night ? 0.3 : 0.5} distance={9} decay={2} />
     </>
@@ -340,6 +355,9 @@ function Desk({ night }: { night: boolean }) {
         <meshStandardMaterial color="#1c1c22" roughness={0.5} />
       </mesh>
       <pointLight position={[dx + 0.85, dy + 0.3, dz + 0.4]} color="#ffb066" intensity={night ? 0.6 : 0.15} distance={2.6} decay={2} />
+      <Plant p={[dx - 0.52, dy + 0.03, dz - 0.32]} />
+      <Mug p={[dx + 0.12, dy + 0.03, dz - 0.28]} />
+      <Papers p={[dx - 0.3, dy, dz - 0.3]} />
       {/* headphones on stand, back-left */}
       <group position={[dx - 0.82, dy + 0.03, dz - 0.2]} rotation={[0, 0.6, 0]}>
         <mesh position={[0, 0.1, 0]}>
@@ -449,7 +467,7 @@ function PCTower({ night, on, onToggle }: { night: boolean; on: boolean; onToggl
 
 function Chair() {
   return (
-    <group position={CHAIR_POS} rotation={[0, Math.PI + 0.12, 0]}>
+    <group position={[CHAIR_POS[0], 0.035, CHAIR_POS[2]]} rotation={[0, Math.PI + 0.12, 0]}>
       {/* 5-star base */}
       {[0, 1, 2, 3, 4].map((i) => {
         const a = (i * Math.PI * 2) / 5;
@@ -571,6 +589,110 @@ function LightSwitch({ night, onToggle }: { night: boolean; onToggle: () => void
   );
 }
 
+
+/* ------------------------------------------------------------------ */
+/* desk props + wall clock (detail pass)                               */
+/* ------------------------------------------------------------------ */
+
+function Plant({ p }: { p: V3 }) {
+  return (
+    <group position={p}>
+      <mesh position={[0, 0.045, 0]} castShadow>
+        <cylinderGeometry args={[0.045, 0.035, 0.09, 14]} />
+        <meshStandardMaterial color="#8a4b2c" roughness={0.8} />
+      </mesh>
+      {[[0, 0.14, 0], [0.03, 0.12, 0.02], [-0.03, 0.12, -0.02], [0, 0.11, 0.035]].map((lp, i) => (
+        <mesh key={i} position={lp as V3} rotation={[i * 0.5, i, 0]}>
+          <coneGeometry args={[0.028, 0.09, 8]} />
+          <meshStandardMaterial color="#2f8f4e" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Mug({ p }: { p: V3 }) {
+  return (
+    <group position={p}>
+      <mesh position={[0, 0.035, 0]} castShadow>
+        <cylinderGeometry args={[0.032, 0.028, 0.07, 16]} />
+        <meshStandardMaterial color="#20202a" roughness={0.35} />
+      </mesh>
+      <mesh position={[0.036, 0.04, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.022, 0.007, 8, 14]} />
+        <meshStandardMaterial color="#20202a" roughness={0.35} />
+      </mesh>
+    </group>
+  );
+}
+
+function Papers({ p }: { p: V3 }) {
+  return (
+    <group position={p}>
+      {[[0, 0, 0, 0.15], [0.05, 0.002, 0.03, -0.3], [-0.03, 0.004, -0.02, 0.45]].map(([x, y, z, r], i) => (
+        <mesh key={i} position={[x, 0.031 + y, z]} rotation={[-Math.PI / 2, 0, r]}>
+          <planeGeometry args={[0.16, 0.22]} />
+          <meshStandardMaterial color="#e8e4da" roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function WallClock() {
+  const minute = useRef<THREE.Group>(null);
+  const hour = useRef<THREE.Group>(null);
+  const face = useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 256;
+    const g = c.getContext("2d")!;
+    g.fillStyle = "#f2efe8";
+    g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = "#222";
+    g.lineWidth = 5;
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      g.beginPath();
+      g.moveTo(128 + Math.cos(a) * 100, 128 + Math.sin(a) * 100);
+      g.lineTo(128 + Math.cos(a) * 112, 128 + Math.sin(a) * 112);
+      g.stroke();
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }, []);
+  useFrame(() => {
+    const d = new Date();
+    if (minute.current) minute.current.rotation.z = -((d.getMinutes() + d.getSeconds() / 60) / 60) * Math.PI * 2;
+    if (hour.current) hour.current.rotation.z = -(((d.getHours() % 12) + d.getMinutes() / 60) / 12) * Math.PI * 2;
+  });
+  return (
+    <group position={[1.85, 2.3, -2.95]}>
+      <mesh>
+        <circleGeometry args={[0.19, 32]} />
+        <meshStandardMaterial map={face} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0, -0.012]}>
+        <circleGeometry args={[0.2, 32]} />
+        <meshStandardMaterial color="#1a1a20" />
+      </mesh>
+      <group ref={hour} position={[0, 0, 0.008]}>
+        <mesh position={[0, 0.045, 0]}>
+          <boxGeometry args={[0.014, 0.09, 0.006]} />
+          <meshStandardMaterial color="#1a1a20" />
+        </mesh>
+      </group>
+      <group ref={minute} position={[0, 0, 0.012]}>
+        <mesh position={[0, 0.065, 0]}>
+          <boxGeometry args={[0.01, 0.13, 0.006]} />
+          <meshStandardMaterial color="#1a1a20" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* the monitor with your OS inside                                     */
 /* ------------------------------------------------------------------ */
@@ -621,8 +743,9 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
           <meshStandardMaterial color="#000" emissive="#4da3ff" emissiveIntensity={2.4} />
         </mesh>
         {/* the OS */}
-        <Html transform position={[0, 0, 0.031]} scale={SCREEN_W / 1024} zIndexRange={[16777271, 0]}>
-          <div style={{ width: 1024, height: 592, overflow: "hidden", background: "#000", position: "relative" }}>
+        <Html transform position={[0, 0, 0.031]} scale={SCREEN_W / 2048} zIndexRange={[16777271, 0]}>
+          <div style={{ width: 2048, height: 1184, overflow: "hidden", background: "#000", position: "relative",
+                        pointerEvents: "auto", imageRendering: "-webkit-optimize-contrast" }}>
             {children}
             {/* live indicator */}
             <div style={{ position: "absolute", top: 6, right: 10, color: "#2fbf71",
@@ -642,7 +765,8 @@ function Monitor({ night, onZoomStart, entering, children }: { night: boolean; o
         <meshStandardMaterial color="#1c1c26" metalness={0.65} roughness={0.3} />
       </mesh>
       {/* screen glow */}
-      <pointLight position={[0, -0.3, 0.9]} color="#9db8ff" intensity={night ? 1.5 : 0.4} distance={5} decay={2} />
+      <pointLight position={[0, -0.25, 0.75]} color="#9db8ff" intensity={night ? 1.8 : 0.5} distance={5.5} decay={2} />
+      <pointLight position={[0, 0, -0.4]} color="#8b5cff" intensity={night ? 0.5 : 0.1} distance={2.2} decay={2} />
       <ambientLight intensity={0.5} />
     </group>
   );
@@ -718,10 +842,10 @@ export default function Room({ onEnter, children }: { onEnter: () => void; child
       style={{ background: night ? "#05050a" : "#b8b4aa" }}
     >
       <Canvas
-        shadows
-        dpr={[1, 1.75]}
+        shadows="soft"
+        dpr={[1, 1.5]}
         camera={{ position: CAM_POS, fov: 55, near: 0.1, far: 40 }}
-        gl={{ antialias: true, toneMappingExposure: 1.15 }}
+        gl={{ antialias: true, toneMappingExposure: 1.0 }}
         onCreated={({ scene }) => {
           scene.background = new THREE.Color(night ? "#05050a" : "#b8b4aa");
           scene.fog = new THREE.Fog(night ? "#05050a" : "#b8b4aa", 9, 22);
@@ -735,14 +859,17 @@ export default function Room({ onEnter, children }: { onEnter: () => void; child
         <Shelves />
         <Monitor night={night} onZoomStart={zoom} entering={entering}>{children}</Monitor>
         <LightSwitch night={night} onToggle={() => setNight((v) => !v)} />
+        <WallClock />
         <Dust night={night} />
         <OrbitControls
           makeDefault
           target={LOOK_AT}
-          minDistance={1.2}
-          maxDistance={5.5}
-          minPolarAngle={0.45}
-          maxPolarAngle={1.6}
+          minDistance={0.9}
+          maxDistance={3.0}
+          minPolarAngle={Math.PI / 3.5}
+          maxPolarAngle={Math.PI / 2.05}
+          minAzimuthAngle={-Math.PI / 2.6}
+          maxAzimuthAngle={Math.PI / 2.6}
           enablePan={false}
           enableDamping
           dampingFactor={0.08}
