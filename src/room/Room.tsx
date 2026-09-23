@@ -140,9 +140,10 @@ function OSMonitor({ m, onZoomStart, entering, children }: { m: Measured; onZoom
         <meshBasicMaterial color="#0b1220" />
       </mesh>
       {/* the OS */}
-      <Html transform position={[0, 0, 0.004]} scale={m.w / 2048} zIndexRange={[16777271, 0]}>
+      <Html transform position={[0, 0, 0.004]} scale={m.w / 2048} zIndexRange={[16777271, 0]}
+            style={{ pointerEvents: "none" }}>
         <div style={{ width: 2048, height: Math.round(2048 * (m.h / m.w)), overflow: "hidden",
-                      background: "#000", position: "relative", pointerEvents: "auto" }}>
+                      background: "#000", position: "relative", pointerEvents: "none" }}>
           {children}
           <div style={{ position: "absolute", top: 8, right: 14, color: "#2fbf71", font: "700 22px monospace",
                         zIndex: 99999, pointerEvents: "none" }}>● OS</div>
