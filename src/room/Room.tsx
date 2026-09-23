@@ -13,7 +13,6 @@ import type { ReactNode } from "react";
  */
 
 const MODEL_URL = "models/gaming_room.glb";
-const MONITOR_NAME = "Cube.005_moniter1"; // main screen of the triple-monitor set
 
 interface Measured {
   panelPos: THREE.Vector3;
@@ -29,18 +28,19 @@ interface Measured {
   roomCenter: THREE.Vector3;
 }
 
-/** measure the model; if the monitor's smallest axis is Y the model is
- *  Z-up tipped — apply a -90° X fix and re-measure once. */
-function useMeasurements(gltf: { scene: THREE.Group }, rotFix: number, setRotFix: (r: number) => void) {
+/** measure the model at runtime — no hardcoded coordinates. */
+function useMeasurements(gltf: { scene: THREE.Group }) {
   const [m, setM] = useState<Measured | null>(null);
   useEffect(() => {
     const scene = gltf.scene;
-    scene.rotation.set(rotFix, 0, 0);
     scene.updateMatrixWorld(true);
 
     const all = new THREE.Box3().setFromObject(scene);
-    const mon = scene.getObjectByName(MONITOR_NAME);
-    if (!mon) { console.warn("monitor node not found:", MONITOR_NAME); return; }
+    let mon: THREE.Object3D | null = null;
+    scene.traverse((o) => {
+      if (!mon && (o as THREE.Mesh).isMesh && o.name.toLowerCase().includes("moniter1")) mon = o;
+    });
+    if (!mon) { console.warn("[room] monitor mesh not found"); return; }
     const mb = new THREE.Box3().setFromObject(mon);
 
     const monCenter = mb.getCenter(new THREE.Vector3());
@@ -48,35 +48,35 @@ function useMeasurements(gltf: { scene: THREE.Group }, rotFix: number, setRotFix
     const roomCenter = all.getCenter(new THREE.Vector3());
     const roomSize = all.getSize(new THREE.Vector3());
 
-    // screen plane = the two LARGEST axes of the monitor box; smallest = depth
-    const dims: Array<[number, number]> = ([
-      [monSize.x, 0], [monSize.y, 1], [monSize.z, 2],
-    ] as Array<[number, number]>).sort((a, b) => b[0] - a[0]);
-    const [w, wAxis] = dims[0];
-    const [h, hAxis] = dims[1];
-    const [depth, dAxis] = dims[2];
-
-    // if the smallest axis is Y, the model is tipped → fix and re-measure
-    if (dAxis === 1 && rotFix === 0) { setRotFix(-Math.PI / 2); return; }
-
-    // facing: along the depth axis, toward the room interior
-    const facing = new THREE.Vector3();
-    facing.setComponent(dAxis, 1);
-    if (facing.dot(roomCenter.clone().sub(monCenter)) < 0) facing.negate();
-
-    const panelPos = monCenter.clone().add(facing.clone().multiplyScalar(depth / 2 + 0.002));
-
+    // the monitor mesh includes its stand, so fit a 16:9 panel to the
+    // upper-middle of the bounds — that's where the screen actually is
+    const panelH = monSize.y * 0.55;
+    const panelW = Math.min(panelH * (16 / 9), monSize.x * 1.1);
     const up = new THREE.Vector3(0, 1, 0);
+
+    // facing: horizontal direction from the monitor toward the room center
+    const facing = roomCenter.clone().sub(monCenter);
+    facing.y = 0;
+    if (facing.lengthSq() < 1e-6) facing.set(0, 0, 1);
+    facing.normalize();
+
+    // exact front-surface offset: project the AABB onto the facing direction
+    const depthAlong = monSize.x * Math.abs(facing.x) + monSize.z * Math.abs(facing.z);
+    const panelPos = monCenter.clone().add(up.clone().multiplyScalar(monSize.y * 0.12))
+      .add(facing.clone().multiplyScalar(depthAlong / 2 + 0.02));
+
     const quat = new THREE.Quaternion().setFromRotationMatrix(
       new THREE.Matrix4().lookAt(new THREE.Vector3(), facing.clone(), up)
     );
 
-    const dist = Math.max(w, h) * 2.4;
+    const w = panelW, h = panelH;
+    const dist = Math.max(monSize.x, monSize.y, monSize.z) * 2.2;
     const camPos = panelPos.clone().add(facing.clone().multiplyScalar(dist)).add(new THREE.Vector3(0, dist * 0.12, 0));
     const maxDim = Math.max(roomSize.x, roomSize.y, roomSize.z);
 
-    setM({ panelPos, facing, quat, w, h, depth, camPos, lookAt: panelPos.clone(), near: maxDim * 0.01, far: maxDim * 12, roomCenter });
-  }, [gltf.scene, rotFix, setRotFix]);
+    setM({ panelPos, facing, quat, w, h, depth: depthAlong, camPos, lookAt: panelPos.clone(), near: maxDim * 0.01, far: maxDim * 12, roomCenter });
+    console.log("[room] measured", { panelPos: panelPos.toArray().map((v) => +v.toFixed(2)), w: +w.toFixed(2), h: +h.toFixed(2) });
+  }, [gltf.scene]);
   return m;
 }
 
@@ -157,11 +157,10 @@ function OSMonitor({ m, onZoomStart, entering, children }: { m: Measured; onZoom
 
 export default function Room({ onEnter, children }: { onEnter: () => void; children: ReactNode }) {
   const gltf = useGLTF(MODEL_URL);
-  const [rotFix, setRotFix] = useState(0);
   const [night, setNight] = useState(false); // default: fully lit
   const [entering, setEntering] = useState(false);
   const [fade, setFade] = useState(false);
-  const m = useMeasurements(gltf, rotFix, setRotFix);
+  const m = useMeasurements(gltf);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
