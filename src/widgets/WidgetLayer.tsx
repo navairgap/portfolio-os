@@ -15,8 +15,8 @@ interface WPos { x: number; y: number; w: number; z: number; ws: number }
 interface WState { pos: Record<string, WPos>; setPos: (id: string, p: Partial<WPos>) => void; bring: (id: string, front: boolean) => void }
 export const useWidgets = create<WState>((set) => ({
   pos: loadLS<Record<string, WPos>>("os.widgets.pos", {}),
-  setPos: (id, p) => set((s) => { const np = { ...s.pos, [id]: { x: 90, y: 100, w: 220, z: 1, ws: 0, ...s.pos[id], ...p } }; saveLS("os.widgets.pos", np); return { pos: np }; }),
-  bring: (id, front) => set((s) => { const zs = Object.values(s.pos).map((p) => p.z); const z = front ? Math.max(1, ...zs) + 1 : Math.min(1, ...zs) - 1; const np = { ...s.pos, [id]: { x: 90, y: 100, w: 220, z: 1, ws: 0, ...s.pos[id], z } }; saveLS("os.widgets.pos", np); return { pos: np }; }),
+  setPos: (id, p) => set((s) => { const base: WPos = Object.assign({ x: 90, y: 100, w: 220, z: 1, ws: 0 }, s.pos[id]); const np = { ...s.pos, [id]: { ...base, ...p } }; saveLS("os.widgets.pos", np); return { pos: np }; }),
+  bring: (id, front) => set((s) => { const zs = Object.values(s.pos).map((p) => p.z); const z = front ? Math.max(1, ...zs) + 1 : Math.min(1, ...zs) - 1; const base: WPos = Object.assign({ x: 90, y: 100, w: 220, z: 1, ws: 0 }, s.pos[id]); const np = { ...s.pos, [id]: { ...base, z } }; saveLS("os.widgets.pos", np); return { pos: np }; }),
 }));
 
 function WidgetShell({ id, children }: { id: string; children: React.ReactNode }) {
@@ -44,7 +44,7 @@ function WidgetShell({ id, children }: { id: string; children: React.ReactNode }
         { label: "Bring forward", action: () => useWidgets.getState().bring(id, true) },
         { label: "Send back", action: () => useWidgets.getState().bring(id, false) },
         { label: "Configure", action: () => { const w = prompt("Width (px):", String(p.w)); if (w) setPos(id, { w: Math.max(140, +w || p.w) }); } },
-        [2, 3, 4].map((n) => ({ label: `Move to workspace ${n}`, action: () => setPos(id, { ws: n - 1 }) })),
+        ...[2, 3, 4].map((n) => ({ label: `Move to workspace ${n}`, action: () => setPos(id, { ws: n - 1 }) })),
         { sep: true, label: "" },
         { label: "Remove widget", danger: true, action: () => useSettings.getState().set({ widgets: { ...useSettings.getState().widgets, [id]: false } }) },
       ]); }}>

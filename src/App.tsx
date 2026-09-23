@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import BootSequence from "./system/BootSequence";
 import ShutdownScreen from "./system/ShutdownScreen";
@@ -10,7 +10,6 @@ import type { OSPhase } from "./types";
 import LockScreen from "./features/lockScreen/LockScreen";
 import RecoveryShell from "./features/recovery/RecoveryShell";
 import ErrorBoundary from "./system/ErrorBoundary";
-import { lazy, Suspense, useState } from "react";
 import { RoomBoundary } from "./room/RoomBoundary";
 const Room = lazy(() => import("./room/Room"));
 

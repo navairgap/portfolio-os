@@ -143,14 +143,14 @@ export default function Room({ onEnter }: { onEnter: () => void }) {
       // fly-in
       controls.enabled = false;
       gsap.to(camera.position, { ...CAM_POS, duration: 1.6, ease: "power3.out" });
-      gsap.to(camera.rotation, { x: -0.8310687859940357, y: 0.9380973951104649, z: 0.7243388791233853, duration: 1.6, ease: "power3.out", onUpdate: () => controls.update(), onComplete: () => (controls.enabled = true) });
+      gsap.to(camera.rotation, { x: -0.8310687859940357, y: 0.9380973951104649, z: 0.7243388791233853, duration: 1.6, ease: "power3.out", onUpdate: () => { controls.update(); }, onComplete: () => { controls.enabled = true; } });
     }, undefined, (e) => setMsg("model failed: " + e));
 
     const fly = (pos: THREE.Vector3, look: THREE.Vector3, done?: () => void) => {
       dummy.position.copy(pos); dummy.lookAt(look);
       controls.enabled = false;
       gsap.to(camera.position, { x: pos.x, y: pos.y, z: pos.z, duration: 1.5, ease: "power3.inOut" });
-      gsap.to(camera.rotation, { x: dummy.rotation.x, y: dummy.rotation.y, z: dummy.rotation.z, duration: 1.5, ease: "power3.inOut", onUpdate: () => controls.update(), onComplete: () => { controls.enabled = true; done?.(); } });
+      gsap.to(camera.rotation, { x: dummy.rotation.x, y: dummy.rotation.y, z: dummy.rotation.z, duration: 1.5, ease: "power3.inOut", onUpdate: () => { controls.update(); }, onComplete: () => { controls.enabled = true; done?.(); } });
     };
 
     const onClick = (e: MouseEvent) => {

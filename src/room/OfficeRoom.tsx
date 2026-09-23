@@ -6,7 +6,7 @@ import * as THREE from "three";
 const MODEL_URL = (import.meta as any).env?.BASE_URL + "models/office-computer.glb";
 
 // Identifies meshes at runtime from world transforms (no hardcoded positions).
-interface Found {
+export interface Found {
   monitor: THREE.Mesh | null;
   chair: THREE.Object3D | null;
   center: THREE.Vector3;

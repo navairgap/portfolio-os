@@ -8,7 +8,7 @@ const LAST_SEND = "os.mail.last";
 
 export default function MailApp() {
   const name = useSettings((s) => s.displayName);
-  const [view, setView] = useState<"inbox" | "compose">("inbox");
+  const [view, setView] = useState<"inbox" | "message" | "compose">("inbox");
   const [from, setFrom] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");

@@ -78,4 +78,4 @@ export interface SettingsState {
   sleepTimeout: "never" | "5" | "15" | "30";
 }
 
-export type OSPhase = "boot" | "login" | "desktop" | "shutdown";
+export type OSPhase = "boot" | "login" | "desktop" | "lock" | "recovery" | "shutdown" | "restart";

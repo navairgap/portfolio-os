@@ -53,7 +53,7 @@ export default function MonitorScreen({ found, onEnter }: { found: Found; onEnte
         <planeGeometry args={[screenW * 1.12, screenH * 1.1]} />
         <meshBasicMaterial color="#000000" side={2} />
       </mesh>
-      <group quaternion={new THREE_QuatFromDir(front)}>
+      <group quaternion={THREE_QuatFromDir(front)}>
         <Html transform occlude position={[0, 0, 0.002]} scale={screenW / 1024} zIndexRange={[10, 0]}>
           <ScreenPreview onEnter={onEnter} />
         </Html>

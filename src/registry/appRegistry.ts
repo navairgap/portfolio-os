@@ -1,4 +1,4 @@
-import { Gamepad2, lazy, type ComponentType } from "react";
+import { lazy, type ComponentType } from "react";
 import { Gamepad2, Folder, TerminalSquare, BarChart3, FileText, Code2, Globe, Mail, Settings, Calculator, StickyNote, Image as ImageIcon, FileBox, Trash2, Info, Activity, ListChecks, Music2, BookOpen, MessagesSquare } from "lucide-react";
 import type { AppDefinition } from "../types";
 

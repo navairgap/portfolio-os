@@ -4,7 +4,8 @@ import { useSession } from "../store/useSessionStore";
 import { APPS } from "../registry/appRegistry";
 
 export default function WorkspaceOverview() {
-  const { overviewOpen, setOverviewOpen, setWorkspace } = useSession();
+  const { overviewOpen, setOverviewOpen } = useSession();
+  const { setWorkspace } = useWindows();
   const { windows, activeWorkspace } = useWindows();
   return (
     <AnimatePresence>
