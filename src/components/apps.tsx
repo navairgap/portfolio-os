@@ -20,6 +20,7 @@ export function TerminalApp() {
   ]);
   const [hist, setHist] = useState<string[]>([]);
   const [hi, setHi] = useState(-1);
+  const [cmd, setCmd] = useState("");
   const [cwd, setCwd] = useState("~");
   const input = useRef<HTMLInputElement>(null);
   const out = useRef<HTMLDivElement>(null);
@@ -132,14 +133,17 @@ export function TerminalApp() {
         <span className="prompt">{prompt()}</span>
         <input
           ref={input}
-          value=""
-          onChange={(e) => { const v = e.target.value; e.target.value = ""; run(v); }}
+          value={cmd}
+          onChange={(e) => setCmd(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "ArrowUp") { e.preventDefault(); const i = hi < 0 ? hist.length - 1 : Math.max(0, hi - 1); setHi(i); if (hist[i]) (e.target as HTMLInputElement).value = hist[i]; }
-            if (e.key === "ArrowDown") { e.preventDefault(); const i = hi + 1; if (i >= hist.length) { setHi(-1); (e.target as HTMLInputElement).value = ""; } else { setHi(i); (e.target as HTMLInputElement).value = hist[i]; } }
+            if (e.key === "Enter") { const v = cmd; setCmd(""); run(v); }
+            if (e.key === "ArrowUp") { e.preventDefault(); const i = hi < 0 ? hist.length - 1 : Math.max(0, hi - 1); setHi(i); if (hist[i] !== undefined) setCmd(hist[i]); }
+            if (e.key === "ArrowDown") { e.preventDefault(); const i = hi + 1; if (i >= hist.length) { setHi(-1); setCmd(""); } else { setHi(i); setCmd(hist[i]); } }
+            if (e.key === "l" && e.ctrlKey) { e.preventDefault(); setLines([]); }
           }}
           aria-label="terminal input"
           autoComplete="off"
+          spellCheck={false}
         />
         <span className="cursor" />
       </div>
@@ -249,6 +253,16 @@ export function MailApp() {
   const [sel, setSel] = useState(MAILS[0].id);
   const [composing, setComposing] = useState(false);
   const [sent, setSent] = useState(false);
+  const [to, setTo] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const send = (e: React.FormEvent) => {
+    e.preventDefault();
+    const href = `mailto:${ABOUT.email}?subject=${encodeURIComponent(subject || "Hello navairgap")}&body=${encodeURIComponent(body + "\n\n— " + (to || "anonymous"))}`;
+    window.location.href = href;
+    setSent(true);
+    setTimeout(() => { setComposing(false); setSent(false); setTo(""); setSubject(""); setBody(""); }, 1800);
+  };
   const mail = MAILS.find((m) => m.id === sel)!;
 
   return (
@@ -281,12 +295,12 @@ export function MailApp() {
         <p>{mail.body}</p>
       </div>
       {composing && (
-        <form className="compose" onSubmit={(e) => { e.preventDefault(); setSent(true); setTimeout(() => { setComposing(false); setSent(false); }, 1600); }}>
-          <div style={{ fontSize: 12, color: "var(--text2)" }}>New message — opens your mail client. No data stored, obviously.</div>
-          <input required placeholder="your email" type="email" />
-          <input placeholder="subject" defaultValue="Hello navairgap" />
-          <textarea required rows={7} placeholder="say something worth encrypting…" />
-          {sent ? <div style={{ color: "var(--green)", fontSize: 12 }}>handing off to your mail client…</div>
+        <form className="compose" onSubmit={send}>
+          <div style={{ fontSize: 12, color: "var(--text2)" }}>New message — opens your mail client with everything pre-filled. Nothing stored here, obviously.</div>
+          <input required placeholder="your email" type="email" value={to} onChange={(e) => setTo(e.target.value)} />
+          <input placeholder="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+          <textarea required rows={7} placeholder="say something worth encrypting…" value={body} onChange={(e) => setBody(e.target.value)} />
+          {sent ? <div style={{ color: "var(--green)", fontSize: 12 }}>handed off to your mail client ✓</div>
             : <button type="submit"><Send size={13} style={{ verticalAlign: -2 }} /> send via mailto</button>}
         </form>
       )}
@@ -424,6 +438,16 @@ function art(i: number): string {
 export function GalleryApp() {
   const [sel, setSel] = useState<number | null>(null);
   const [arts] = useState(() => Array.from({ length: 8 }, (_, i) => ({ src: art(i), cap: `generative study #${i + 1} — signal/${i % 2 ? "noise" : "structure"}` })));
+  useEffect(() => {
+    if (sel === null) return;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") { e.stopPropagation(); setSel((s) => (s! + arts.length - 1) % arts.length); }
+      if (e.key === "ArrowRight") { e.stopPropagation(); setSel((s) => (s! + 1) % arts.length); }
+      if (e.key === "Escape") { e.stopPropagation(); e.stopImmediatePropagation(); setSel(null); }
+    };
+    addEventListener("keydown", h, true);   // capture: beats the window-manager's Esc
+    return () => removeEventListener("keydown", h, true);
+  }, [sel !== null, arts.length]);
   return (
     <div className="gal">
       {sel === null ? (

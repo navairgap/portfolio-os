@@ -121,18 +121,18 @@ export default function Desktop() {
   const running = (a: AppId) => os.windows.some((w) => w.appId === a);
 
   return (
-    <div className={`desktop ${os.dark ? "" : ""}`} data-theme={os.dark ? "dark" : "light"}
+    <div className="desktop" data-theme={os.dark ? "dark" : "light"}
       onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY }); }}>
       <div className={`wallpaper ${WALLS[os.wallpaper]}`} />
 
       <div className="dicons">
-        <button className="dicon" onDoubleClick={() => os.openApp("editor")} onClick={(e) => (e.detail === 1 ? null : null)}>
+        <button className="dicon" onClick={() => os.openApp("editor")}>
           <FileText size={30} color="#F5A623" /> resume.txt
         </button>
-        <button className="dicon" onDoubleClick={() => os.openApp("about")}>
+        <button className="dicon" onClick={() => os.openApp("about")}>
           <Info size={30} color="#6FCF97" /> about-me
         </button>
-        <button className="dicon" onDoubleClick={() => os.openApp("files", "projects")}>
+        <button className="dicon" onClick={() => os.openApp("files", "projects")}>
           <FolderOpen size={30} color="#8b5cff" /> Projects
         </button>
       </div>

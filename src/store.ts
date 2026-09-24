@@ -81,8 +81,8 @@ export const useOS = create<OSState>((set, get) => ({
 
   openApp: (appId, payload) => {
     const s = get();
-    // focus existing window of same app+payload on this workspace
-    const existing = s.windows.find((w) => w.appId === appId && !w.minimized && w.payload === payload);
+    // focus existing window of same app+payload (restores if minimized) — never duplicate
+    const existing = s.windows.find((w) => w.appId === appId && w.payload === payload);
     if (existing) { get().focusWindow(existing.id); return; }
     const meta = APP_META[appId];
     spawnOffset = (spawnOffset + 1) % 6;

@@ -17,8 +17,12 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
   const start = useCallback((dir: Dir | "move") => (e: React.PointerEvent) => {
     e.stopPropagation();
     focusWindow(win.id);
-    if (win.maximized && dir === "move") { /* unmaximize, follow cursor */ setGeom(win.id, { maximized: false, x: e.clientX - win.width / 2, y: e.clientY - 14 }); }
-    drag.current = { dir, sx: e.clientX, sy: e.clientY, ox: win.x, oy: win.y, ow: win.width, oh: win.height, moved: false };
+    let ox = win.x, oy = win.y;
+    if (win.maximized && dir === "move") {
+      ox = Math.max(0, e.clientX - win.width / 2); oy = Math.max(38, e.clientY - 14);
+      setGeom(win.id, { maximized: false, x: ox, y: oy });
+    }
+    drag.current = { dir, sx: e.clientX, sy: e.clientY, ox, oy, ow: win.width, oh: win.height, moved: false };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, [win, focusWindow, setGeom]);
 

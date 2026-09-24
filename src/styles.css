@@ -204,6 +204,7 @@ input,textarea{font-family:var(--font-mono);color:var(--text)}
 .swatches button.on{border-color:var(--text)}
 .wallthumbs{display:grid;grid-template-columns:repeat(2,130px);gap:12px}
 .wallthumbs button{height:74px;border-radius:10px;border:2px solid transparent}
+.wallthumbs button.wallpaper{position:relative;inset:auto}
 .wallthumbs button.on{border-color:var(--amber)}
 
 .gal{height:100%;overflow:auto;padding:16px}
