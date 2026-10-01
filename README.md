@@ -22,3 +22,5 @@ Plain-résumé escape hatch is always one click away, top-right.
 
 ---
 maintained · verified 2026-09-30
+---
+maintained · verified 2026-10-01
