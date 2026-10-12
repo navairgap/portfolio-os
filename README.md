@@ -35,3 +35,7 @@ maintained · verified 2026-10-02
 | esc | close focused window |
 | l | toggle lights (3D room) |
 | r | skip the room |
+
+## Mobile fallback
+
+below 768px the desktop session gives way to an app grid with fullscreen apps — no window chrome, no dragging. the same zustand stores drive both paths, so state survives the switch.
