@@ -26,3 +26,12 @@ maintained · verified 2026-09-30
 maintained · verified 2026-10-01
 ---
 maintained · verified 2026-10-02
+
+## Keyboard shortcuts
+
+| key | action |
+| --- | --- |
+| alt + tab | cycle windows |
+| esc | close focused window |
+| l | toggle lights (3D room) |
+| r | skip the room |
