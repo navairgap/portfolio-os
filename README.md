@@ -43,3 +43,7 @@ below 768px the desktop session gives way to an app grid with fullscreen apps â€
 ## Persistence
 
 session state lives in `sessionStorage` (boot skip), preferences in `localStorage` (theme, accent, wallpaper, window geometry). incognito gives you the full boot every time.
+
+## Theming
+
+colors are CSS custom properties on `:root`; the accent swap rewrites one variable. wallpapers are gradient classes. adding a theme means adding a `[data-theme]` block â€” no component changes.
