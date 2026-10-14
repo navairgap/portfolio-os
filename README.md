@@ -39,3 +39,7 @@ maintained · verified 2026-10-02
 ## Mobile fallback
 
 below 768px the desktop session gives way to an app grid with fullscreen apps — no window chrome, no dragging. the same zustand stores drive both paths, so state survives the switch.
+
+## Persistence
+
+session state lives in `sessionStorage` (boot skip), preferences in `localStorage` (theme, accent, wallpaper, window geometry). incognito gives you the full boot every time.
