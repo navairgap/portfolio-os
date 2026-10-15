@@ -47,3 +47,7 @@ session state lives in `sessionStorage` (boot skip), preferences in `localStorag
 ## Theming
 
 colors are CSS custom properties on `:root`; the accent swap rewrites one variable. wallpapers are gradient classes. adding a theme means adding a `[data-theme]` block — no component changes.
+
+## Performance
+
+apps lazy-load, the shell stays under ~120KB gz, the 3D room mounts once. slow devices get the app-grid fallback.
