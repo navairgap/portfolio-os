@@ -51,3 +51,7 @@ colors are CSS custom properties on `:root`; the accent swap rewrites one variab
 ## Performance
 
 apps lazy-load, the shell stays under ~120KB gz, the 3D room mounts once. slow devices get the app-grid fallback.
+
+## History
+
+v1 was a baked GLB room that fought back for weeks. v2 was procedural. v3 wiped everything and became a real OS: boot, login, window manager, nine apps. the wipe commit message says 'start from scratch' and means it.
