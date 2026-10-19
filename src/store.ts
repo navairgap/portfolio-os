@@ -99,7 +99,13 @@ export const useOS = create<OSState>((set, get) => ({
 
   closeWindow: (id) => set((s) => {
     const wins = s.windows.filter((w) => w.id !== id);
-    return { windows: wins, focused: s.focused === id ? (wins.length ? wins[wins.length - 1].id : null) : s.focused };
+    const nextFocused = [...wins]
+      .filter((w) => !w.minimized)
+      .sort((a, b) => b.z - a.z)[0];
+    return {
+      windows: wins,
+      focused: s.focused === id ? (nextFocused?.id ?? null) : s.focused,
+    };
   }),
   focusWindow: (id) => set((s) => ({
     focused: id, zTop: s.zTop + 1,
