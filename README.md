@@ -55,3 +55,8 @@ apps lazy-load, the shell stays under ~120KB gz, the 3D room mounts once. slow d
 ## History
 
 v1 was a baked GLB room that fought back for weeks. v2 was procedural. v3 wiped everything and became a real OS: boot, login, window manager, nine apps. the wipe commit message says 'start from scratch' and means it.
+
+
+## Maintenance notes
+
+Test keyboard-only window operations, predictable focus after close/minimize/restore, workspace isolation, and reduced-motion behavior. Ensure focus indicators remain visible and windows stay within viewport bounds at zoomed layouts.
