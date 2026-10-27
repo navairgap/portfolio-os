@@ -107,10 +107,16 @@ export const useOS = create<OSState>((set, get) => ({
       focused: s.focused === id ? (nextFocused?.id ?? null) : s.focused,
     };
   }),
-  focusWindow: (id) => set((s) => ({
-    focused: id, zTop: s.zTop + 1,
-    windows: s.windows.map((w) => (w.id === id ? { ...w, z: s.zTop + 1, minimized: false } : w)),
-  })),
+  focusWindow: (id) => set((s) => {
+    // A stale window id must never leave focused pointing at a missing window.
+    if (!s.windows.some((w) => w.id === id)) return {};
+    const nextZ = s.zTop + 1;
+    return {
+      focused: id,
+      zTop: nextZ,
+      windows: s.windows.map((w) => (w.id === id ? { ...w, z: nextZ, minimized: false } : w)),
+    };
+  }),
   minimizeWindow: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, minimized: true } : w)) })),
   toggleMaximize: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)) })),
   setGeom: (id, g) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, ...g } : w)) })),
