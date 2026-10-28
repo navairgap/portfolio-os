@@ -117,7 +117,16 @@ export const useOS = create<OSState>((set, get) => ({
       windows: s.windows.map((w) => (w.id === id ? { ...w, z: nextZ, minimized: false } : w)),
     };
   }),
-  minimizeWindow: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, minimized: true } : w)) })),
+  minimizeWindow: (id) => set((s) => {
+    const windows = s.windows.map((w) =>
+      w.id === id ? { ...w, minimized: true } : w
+    );
+    if (s.focused !== id) return { windows };
+    const nextFocused = windows
+      .filter((w) => !w.minimized)
+      .sort((left, right) => right.z - left.z)[0];
+    return { windows, focused: nextFocused?.id ?? null };
+  }),
   toggleMaximize: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)) })),
   setGeom: (id, g) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, ...g } : w)) })),
 
