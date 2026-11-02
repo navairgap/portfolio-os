@@ -59,6 +59,26 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
 let nextId = 1;
 let spawnOffset = 0;
 
+function readBootedFlag(): boolean {
+  try {
+    return typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem("os.booted") === "1";
+  } catch {
+    // Storage can be disabled by browser privacy settings or sandbox policy.
+    return false;
+  }
+}
+
+function persistBootedFlag(): void {
+  try {
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem("os.booted", "1");
+    }
+  } catch {
+    // The desktop should remain usable even when session storage is unavailable.
+  }
+}
+
 export const useOS = create<OSState>((set, get) => ({
   phase: "boot",
   workspace: 0,
@@ -68,10 +88,10 @@ export const useOS = create<OSState>((set, get) => ({
   windows: [],
   focused: null,
   zTop: 10,
-  booted: typeof sessionStorage !== "undefined" && sessionStorage.getItem("os.booted") === "1",
+  booted: readBootedFlag(),
 
   setPhase: (p) => {
-    if (p === "desktop" && typeof sessionStorage !== "undefined") sessionStorage.setItem("os.booted", "1");
+    if (p === "desktop") persistBootedFlag();
     set({ phase: p });
   },
   setWorkspace: (w) => set({ workspace: w }),
