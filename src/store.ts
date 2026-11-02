@@ -157,7 +157,17 @@ export const useOS = create<OSState>((set, get) => ({
     return { windows, focused: nextFocused?.id ?? null };
   }),
   toggleMaximize: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)) })),
-  setGeom: (id, g) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, ...g } : w)) })),
+  setGeom: (id, g) => set((s) => {
+    const safe: Partial<Pick<AppWindow, "x" | "y" | "width" | "height" | "snap" | "maximized">> = {};
+    if (g.x !== undefined && Number.isFinite(g.x)) safe.x = g.x;
+    if (g.y !== undefined && Number.isFinite(g.y)) safe.y = g.y;
+    if (g.width !== undefined && Number.isFinite(g.width)) safe.width = Math.max(280, g.width);
+    if (g.height !== undefined && Number.isFinite(g.height)) safe.height = Math.max(200, g.height);
+    if (g.snap === null || g.snap === "left" || g.snap === "right") safe.snap = g.snap;
+    if (typeof g.maximized === "boolean") safe.maximized = g.maximized;
+    if (Object.keys(safe).length === 0) return {};
+    return { windows: s.windows.map((w) => (w.id === id ? { ...w, ...safe } : w)) };
+  }),
 
   cycleWindows: () => set((s) => {
     const open = s.windows.filter((w) => !w.minimized);
