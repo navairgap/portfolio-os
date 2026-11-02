@@ -94,10 +94,19 @@ export const useOS = create<OSState>((set, get) => ({
     if (p === "desktop") persistBootedFlag();
     set({ phase: p });
   },
-  setWorkspace: (w) => set({ workspace: w }),
+  setWorkspace: (w) => {
+    if (!Number.isInteger(w) || w < 0 || w > 2) return;
+    set({ workspace: w });
+  },
   toggleTheme: () => set((s) => ({ dark: !s.dark })),
-  setAccent: (a) => set({ accent: a }),
-  setWallpaper: (w) => set({ wallpaper: w }),
+  setAccent: (a) => {
+    if (!/^#[0-9a-fA-F]{6}$/.test(a)) return;
+    set({ accent: a.toUpperCase() });
+  },
+  setWallpaper: (w) => {
+    if (!Number.isSafeInteger(w) || w < 0) return;
+    set({ wallpaper: w });
+  },
 
   openApp: (appId, payload) => {
     const s = get();
