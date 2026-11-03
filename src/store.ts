@@ -104,7 +104,8 @@ export const useOS = create<OSState>((set, get) => ({
     set({ accent: a.toUpperCase() });
   },
   setWallpaper: (w) => {
-    if (!Number.isSafeInteger(w) || w < 0) return;
+    // Desktop.tsx defines exactly four bundled wallpaper variants.
+    if (!Number.isSafeInteger(w) || w < 0 || w >= 4) return;
     set({ wallpaper: w });
   },
 
