@@ -53,7 +53,8 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
 
   const mono = (dir: Dir) => (
     <div key={dir} className={`rz ${dir}`} style={{ cursor: CURSORS[dir] }}
-      onPointerDown={start(dir)} onPointerMove={onMove} onPointerUp={onUp} />
+      onPointerDown={start(dir)} onPointerMove={onMove} onPointerUp={onUp}
+      onPointerCancel={() => { drag.current = null; }} />
   );
 
   return (
@@ -69,7 +70,9 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
           onPointerDown={() => focusWindow(win.id)}
           role="dialog" aria-label={win.title}
         >
-          <div className="titlebar" onPointerDown={start("move")} onPointerMove={onMove} onPointerUp={onUp} onDoubleClick={() => toggleMaximize(win.id)}>
+          <div className="titlebar" onPointerDown={start("move")} onPointerMove={onMove}
+            onPointerUp={onUp} onPointerCancel={() => { drag.current = null; }}
+            onDoubleClick={() => toggleMaximize(win.id)}>
             <span className="ttl">{win.title}</span>
             <div className="wbtns">
               <button aria-label="Minimize" onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}><Minus size={14} /></button>
