@@ -36,8 +36,14 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
       let { x, y, width: w, height: h } = { x: d.ox, y: d.oy, width: d.ow, height: d.oh };
       if (d.dir.includes("e")) w = d.ow + dx;
       if (d.dir.includes("s")) h = d.oh + dy;
-      if (d.dir.includes("w")) { w = d.ow - dx; x = d.ox + dx; }
-      if (d.dir.includes("n")) { h = d.oh - dy; y = d.oy + dy; }
+      if (d.dir.includes("w")) {
+        w = Math.max(280, d.ow - dx);
+        x = d.ox + d.ow - w;
+      }
+      if (d.dir.includes("n")) {
+        h = Math.max(200, d.oh - dy);
+        y = d.oy + d.oh - h;
+      }
       setGeom(win.id, { x, y, width: Math.max(280, w), height: Math.max(200, h) });
     }
   }, [win.id, setGeom]);
