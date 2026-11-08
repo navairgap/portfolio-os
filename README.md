@@ -20,12 +20,6 @@ npm run build           # tsc gate + vite build → dist/
 Live: https://navairgap.github.io/os/
 Plain-résumé escape hatch is always one click away, top-right.
 
----
-maintained · verified 2026-09-30
----
-maintained · verified 2026-10-01
----
-maintained · verified 2026-10-02
 
 ## Keyboard shortcuts
 
