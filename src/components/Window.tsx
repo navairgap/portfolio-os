@@ -80,7 +80,7 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
             onPointerUp={onUp} onPointerCancel={() => { drag.current = null; }}
             onDoubleClick={() => toggleMaximize(win.id)}>
             <span className="ttl">{win.title}</span>
-            <div className="wbtns">
+            <div className="wbtns" onDoubleClick={(e) => e.stopPropagation()}>
               <button aria-label="Minimize" onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}><Minus size={14} /></button>
               <button aria-label="Maximize" onClick={(e) => { e.stopPropagation(); toggleMaximize(win.id); }}><Square size={12} /></button>
               <button aria-label="Close" className="close" onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}><X size={14} /></button>
