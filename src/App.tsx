@@ -131,8 +131,16 @@ function Plain({ close }: { close: () => void }) {
 export default function App() {
   const phase = useOS((s) => s.phase);
   const booted = useOS((s) => s.booted);
-  const [isMobile] = useState(() => matchMedia("(max-width: 768px)").matches);
+  const [isMobile, setIsMobile] = useState(() => matchMedia("(max-width: 768px)").matches);
   const [plain, setPlain] = useState(false);
+
+  useEffect(() => {
+    // Keep following the breakpoint if the window is resized after load.
+    const mq = matchMedia("(max-width: 768px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     if (booted && phase === "boot") useOS.getState().setPhase("desktop");
