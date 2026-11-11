@@ -384,7 +384,7 @@ export function SettingsApp() {
               <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 8 }}>ACCENT</div>
               <div className="swatches">
                 {ACCENTS.map((a) => (
-                  <button key={a} className={accent === a ? "on" : ""} style={{ background: a }} aria-label={"accent " + a} onClick={() => setAccent(a)} />
+                  <button key={a} className={accent.toLowerCase() === a.toLowerCase() ? "on" : ""} style={{ background: a }} aria-label={"accent " + a} onClick={() => setAccent(a)} />
                 ))}
               </div>
             </div>
