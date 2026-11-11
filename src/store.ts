@@ -92,12 +92,48 @@ function persistBootedFlag(): void {
   }
 }
 
+// Appearance preferences survive a reload; every restored value is re-run
+// through the same validation the setters apply.
+const PREFS_KEY = "os.prefs";
+
+interface Prefs {
+  dark?: boolean;
+  accent?: string;
+  wallpaper?: number;
+}
+
+function readPrefs(): Prefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Partial<Prefs>;
+    const out: Prefs = {};
+    if (typeof parsed.dark === "boolean") out.dark = parsed.dark;
+    if (typeof parsed.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(parsed.accent)) out.accent = parsed.accent.toUpperCase();
+    if (typeof parsed.wallpaper === "number" && Number.isSafeInteger(parsed.wallpaper) && parsed.wallpaper >= 0 && parsed.wallpaper < 4) out.wallpaper = parsed.wallpaper;
+    return out;
+  } catch {
+    // Corrupt or unavailable storage just means defaults.
+    return {};
+  }
+}
+
+function persistPrefs(prefs: Prefs): void {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // Storage can be disabled (privacy mode); never break the desktop over it.
+  }
+}
+
+const prefs = readPrefs();
+
 export const useOS = create<OSState>((set, get) => ({
   phase: "boot",
   workspace: 0,
-  dark: true,
-  accent: "#F5A623",
-  wallpaper: 0,
+  dark: prefs.dark ?? true,
+  accent: prefs.accent ?? "#F5A623",
+  wallpaper: prefs.wallpaper ?? 0,
   windows: [],
   focused: null,
   zTop: 10,
@@ -111,15 +147,20 @@ export const useOS = create<OSState>((set, get) => ({
     if (!Number.isInteger(w) || w < 0 || w > 2) return;
     set({ workspace: w });
   },
-  toggleTheme: () => set((s) => ({ dark: !s.dark })),
+  toggleTheme: () => {
+    set((s) => ({ dark: !s.dark }));
+    persistPrefs({ dark: get().dark, accent: get().accent, wallpaper: get().wallpaper });
+  },
   setAccent: (a) => {
     if (!/^#[0-9a-fA-F]{6}$/.test(a)) return;
     set({ accent: a.toUpperCase() });
+    persistPrefs({ dark: get().dark, accent: get().accent, wallpaper: get().wallpaper });
   },
   setWallpaper: (w) => {
     // Desktop.tsx defines exactly four bundled wallpaper variants.
     if (!Number.isSafeInteger(w) || w < 0 || w >= 4) return;
     set({ wallpaper: w });
+    persistPrefs({ dark: get().dark, accent: get().accent, wallpaper: get().wallpaper });
   },
 
   openApp: (appId, payload) => {
