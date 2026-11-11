@@ -474,8 +474,9 @@ function art(i: number): string {
 export function GalleryApp() {
   const [sel, setSel] = useState<number | null>(null);
   const [arts] = useState(() => Array.from({ length: 8 }, (_, i) => ({ src: art(i), cap: `generative study #${i + 1} — signal/${i % 2 ? "noise" : "structure"}` })));
+  const open = sel !== null;
   useEffect(() => {
-    if (sel === null) return;
+    if (!open) return;
     const h = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") { e.stopPropagation(); setSel((s) => (s! + arts.length - 1) % arts.length); }
       if (e.key === "ArrowRight") { e.stopPropagation(); setSel((s) => (s! + 1) % arts.length); }
@@ -483,7 +484,7 @@ export function GalleryApp() {
     };
     addEventListener("keydown", h, true);   // capture: beats the window-manager's Esc
     return () => removeEventListener("keydown", h, true);
-  }, [sel !== null, arts.length]);
+  }, [open, arts.length]);
   return (
     <div className="gal">
       {sel === null ? (
