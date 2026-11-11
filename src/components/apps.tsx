@@ -285,12 +285,14 @@ export function MailApp() {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const handoff = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(handoff.current), []);
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     const href = `mailto:${ABOUT.email}?subject=${encodeURIComponent(subject || "Hello navairgap")}&body=${encodeURIComponent(body + "\n\n— " + (to || "anonymous"))}`;
     window.location.href = href;
     setSent(true);
-    setTimeout(() => { setComposing(false); setSent(false); setTo(""); setSubject(""); setBody(""); }, 1800);
+    handoff.current = window.setTimeout(() => { setComposing(false); setSent(false); setTo(""); setSubject(""); setBody(""); }, 1800);
   };
   const mail = MAILS.find((m) => m.id === sel)!;
 
