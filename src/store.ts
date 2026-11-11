@@ -145,7 +145,10 @@ export const useOS = create<OSState>((set, get) => ({
   },
   setWorkspace: (w) => {
     if (!Number.isInteger(w) || w < 0 || w > 2) return;
-    set({ workspace: w });
+    set((s) => ({
+      workspace: w,
+      focused: topWindow(s.windows, w)?.id ?? null,
+    }));
   },
   toggleTheme: () => {
     set((s) => ({ dark: !s.dark }));
@@ -191,9 +194,7 @@ export const useOS = create<OSState>((set, get) => ({
 
   closeWindow: (id) => set((s) => {
     const wins = s.windows.filter((w) => w.id !== id);
-    const nextFocused = [...wins]
-      .filter((w) => !w.minimized)
-      .sort((a, b) => b.z - a.z)[0];
+    const nextFocused = topWindow(wins, s.workspace);
     return {
       windows: wins,
       focused: s.focused === id ? (nextFocused?.id ?? null) : s.focused,
@@ -222,9 +223,7 @@ export const useOS = create<OSState>((set, get) => ({
       w.id === id ? { ...w, minimized: true } : w
     );
     if (s.focused !== id) return { windows };
-    const nextFocused = windows
-      .filter((w) => !w.minimized)
-      .sort((left, right) => right.z - left.z)[0];
+    const nextFocused = topWindow(windows, s.workspace);
     return { windows, focused: nextFocused?.id ?? null };
   }),
   toggleMaximize: (id) => set((s) => ({ windows: s.windows.map((w) => (w.id === id ? { ...w, maximized: !w.maximized } : w)) })),
@@ -241,7 +240,7 @@ export const useOS = create<OSState>((set, get) => ({
   }),
 
   cycleWindows: () => set((s) => {
-    const open = s.windows.filter((w) => !w.minimized);
+    const open = s.windows.filter((w) => !w.minimized && workspaceOf(w.appId) === s.workspace);
     if (open.length < 2) return {};
     const idx = open.findIndex((w) => w.id === s.focused);
     const nxt = open[(idx + 1) % open.length];
@@ -269,4 +268,10 @@ const WORKSPACE_OF: Partial<Record<AppId, 0 | 1 | 2>> = {
 
 export function workspaceOf(appId: AppId): 0 | 1 | 2 {
   return WORKSPACE_OF[appId] ?? 0;
+}
+
+function topWindow(windows: AppWindow[], workspace: number): AppWindow | undefined {
+  return windows
+    .filter((w) => !w.minimized && workspaceOf(w.appId) === workspace)
+    .sort((a, b) => b.z - a.z)[0];
 }
