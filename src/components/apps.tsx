@@ -100,8 +100,14 @@ export function TerminalApp() {
           gallery: () => openApp("gallery"),
           projects: () => openApp("files", "projects"),
           resume: () => openApp("editor"),
+          "resume.txt": () => openApp("editor"),
           about: () => openApp("about"),
+          "about.txt": () => openApp("about"),
+          "contact.md": () => openApp("about"),
+          files: () => openApp("files"),
           mail: () => openApp("mail"),
+          web: () => openApp("browser"),
+          browser: () => openApp("browser"),
           settings: () => openApp("settings"),
           monitor: () => openApp("monitor"),
         };
@@ -153,7 +159,7 @@ export function TerminalApp() {
             if (e.key === "Enter") { const v = cmd; setCmd(""); run(v); }
             if (e.key === "ArrowUp") { e.preventDefault(); const i = hi < 0 ? hist.length - 1 : Math.max(0, hi - 1); setHi(i); if (hist[i] !== undefined) setCmd(hist[i]); }
             if (e.key === "ArrowDown") { e.preventDefault(); const i = hi + 1; if (i >= hist.length) { setHi(-1); setCmd(""); } else { setHi(i); setCmd(hist[i]); } }
-            if (e.key === "l" && e.ctrlKey) { e.preventDefault(); setLines([]); }
+            if (e.key === "l" && e.ctrlKey) { e.preventDefault(); setLines([]); setHi(-1); }
           }}
           aria-label="terminal input"
           autoComplete="off"
