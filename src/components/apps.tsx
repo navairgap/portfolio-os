@@ -318,11 +318,15 @@ export function EditorApp() {
   const [dirty, setDirty] = useState(false);
   const dl = () => {
     const b = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(b);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(b);
+    a.href = url;
     a.download = "navairgap-resume.txt";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    // Give the browser time to start the download before freeing the URL.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return (
     <div className="editor">
