@@ -126,7 +126,12 @@ export const useOS = create<OSState>((set, get) => ({
     const s = get();
     // focus existing window of same app+payload (restores if minimized) — never duplicate
     const existing = s.windows.find((w) => w.appId === appId && w.payload === payload);
-    if (existing) { get().focusWindow(existing.id); return; }
+    if (existing) {
+      get().focusWindow(existing.id);
+      const ws = workspaceOf(appId);
+      if (get().workspace !== ws) set({ workspace: ws });
+      return;
+    }
     const meta = APP_META[appId];
     if (!meta) return;
     spawnOffset = (spawnOffset + 1) % 6;
@@ -134,13 +139,13 @@ export const useOS = create<OSState>((set, get) => ({
     const nextZ = s.zTop + 1;
     const { windows: base, zTop } = nextZ >= Z_CEILING ? renormalizeZ(s.windows) : { windows: s.windows, zTop: s.zTop };
     const win: AppWindow = {
-      id, appId, title: payload ? `${meta.title}` : meta.title,
+      id, appId, title: payload ? `${meta.title} — ${payload}` : meta.title,
       x: Math.max(20, 120 + spawnOffset * 30 - meta.w / 2),
       y: 90 + spawnOffset * 26,
       width: meta.w, height: meta.h,
       z: zTop + 1, minimized: false, maximized: false, snap: null, payload,
     };
-    set({ windows: [...base, win], focused: id, zTop: zTop + 1 });
+    set({ windows: [...base, win], focused: id, zTop: zTop + 1, workspace: workspaceOf(appId) });
   },
 
   closeWindow: (id) => set((s) => {
@@ -214,3 +219,13 @@ export const useOS = create<OSState>((set, get) => ({
 }));
 
 export const APP_ORDER: AppId[] = ["terminal", "files", "about", "gallery", "editor", "monitor", "mail", "browser", "settings"];
+
+// Which workspace each app lives on: 0 work, 1 gallery, 2 contact.
+const WORKSPACE_OF: Partial<Record<AppId, 0 | 1 | 2>> = {
+  gallery: 1,
+  mail: 2,
+};
+
+export function workspaceOf(appId: AppId): 0 | 1 | 2 {
+  return WORKSPACE_OF[appId] ?? 0;
+}

@@ -5,7 +5,7 @@ import {
   Mail, Globe, Settings, Search, Wifi, Volume2, BatteryMedium,
   Sun, Moon, LayoutGrid, ChevronLeft,
 } from "lucide-react";
-import { useOS, AppId, APP_ORDER } from "../store";
+import { useOS, AppId, APP_ORDER, workspaceOf } from "../store";
 import { ABOUT } from "../content";
 import Window from "./Window";
 import { TerminalApp, FilesApp, AboutApp, MonitorApp, MailApp, EditorApp, WebApp, SettingsApp, GalleryApp } from "./apps";
@@ -159,7 +159,7 @@ export default function Desktop() {
 
       {/* windows of current workspace only; assign by app: 0 work,1 gallery,2 contact */}
       {os.windows.map((w) => {
-        const ws = w.appId === "gallery" ? 1 : w.appId === "mail" ? 2 : 0;
+        const ws = workspaceOf(w.appId);
         if (ws !== os.workspace) return null;
         return (
           <Window key={w.id} win={w}>
