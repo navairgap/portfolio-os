@@ -131,8 +131,15 @@ function Plain({ close }: { close: () => void }) {
 export default function App() {
   const phase = useOS((s) => s.phase);
   const booted = useOS((s) => s.booted);
+  const dark = useOS((s) => s.dark);
   const [isMobile, setIsMobile] = useState(() => matchMedia("(max-width: 768px)").matches);
   const [plain, setPlain] = useState(false);
+
+  useEffect(() => {
+    // Theme the whole document so overlays outside .desktop (login, boot)
+    // follow the light theme too.
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }, [dark]);
 
   useEffect(() => {
     // Keep following the breakpoint if the window is resized after load.
