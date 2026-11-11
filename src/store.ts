@@ -59,6 +59,19 @@ const APP_META: Record<AppId, { title: string; w: number; h: number }> = {
 let nextId = 1;
 let spawnOffset = 0;
 
+// Window z-indices keep growing as windows are raised, so they are
+// renormalized before they can climb past the desktop chrome (panel, dock,
+// and menus all use z-index 60+).
+const Z_FLOOR = 10;
+const Z_CEILING = 50;
+
+function renormalizeZ(windows: AppWindow[]): { windows: AppWindow[]; zTop: number } {
+  const sorted = [...windows].sort((left, right) => left.z - right.z);
+  let z = Z_FLOOR;
+  const out = sorted.map((w) => ({ ...w, z: ++z }));
+  return { windows: out, zTop: z };
+}
+
 function readBootedFlag(): boolean {
   try {
     return typeof sessionStorage !== "undefined" &&
@@ -115,16 +128,19 @@ export const useOS = create<OSState>((set, get) => ({
     const existing = s.windows.find((w) => w.appId === appId && w.payload === payload);
     if (existing) { get().focusWindow(existing.id); return; }
     const meta = APP_META[appId];
+    if (!meta) return;
     spawnOffset = (spawnOffset + 1) % 6;
     const id = nextId++;
+    const nextZ = s.zTop + 1;
+    const { windows: base, zTop } = nextZ >= Z_CEILING ? renormalizeZ(s.windows) : { windows: s.windows, zTop: s.zTop };
     const win: AppWindow = {
       id, appId, title: payload ? `${meta.title}` : meta.title,
       x: Math.max(20, 120 + spawnOffset * 30 - meta.w / 2),
       y: 90 + spawnOffset * 26,
       width: meta.w, height: meta.h,
-      z: s.zTop + 1, minimized: false, maximized: false, snap: null, payload,
+      z: zTop + 1, minimized: false, maximized: false, snap: null, payload,
     };
-    set({ windows: [...s.windows, win], focused: id, zTop: s.zTop + 1 });
+    set({ windows: [...base, win], focused: id, zTop: zTop + 1 });
   },
 
   closeWindow: (id) => set((s) => {
@@ -141,6 +157,14 @@ export const useOS = create<OSState>((set, get) => ({
     // A stale window id must never leave focused pointing at a missing window.
     if (!s.windows.some((w) => w.id === id)) return {};
     const nextZ = s.zTop + 1;
+    if (nextZ >= Z_CEILING) {
+      const { windows, zTop } = renormalizeZ(s.windows);
+      return {
+        focused: id,
+        zTop,
+        windows: windows.map((w) => (w.id === id ? { ...w, z: zTop, minimized: false } : w)),
+      };
+    }
     return {
       focused: id,
       zTop: nextZ,
@@ -175,7 +199,16 @@ export const useOS = create<OSState>((set, get) => ({
     if (open.length < 2) return {};
     const idx = open.findIndex((w) => w.id === s.focused);
     const nxt = open[(idx + 1) % open.length];
-    return { focused: nxt.id, zTop: s.zTop + 1, windows: s.windows.map((w) => (w.id === nxt.id ? { ...w, z: s.zTop + 1 } : w)) };
+    const nextZ = s.zTop + 1;
+    if (nextZ >= Z_CEILING) {
+      const { windows, zTop } = renormalizeZ(s.windows);
+      return {
+        focused: nxt.id,
+        zTop,
+        windows: windows.map((w) => (w.id === nxt.id ? { ...w, z: zTop } : w)),
+      };
+    }
+    return { focused: nxt.id, zTop: nextZ, windows: s.windows.map((w) => (w.id === nxt.id ? { ...w, z: nextZ } : w)) };
   }),
   closeTop: () => { const s = get(); if (s.focused != null) s.closeWindow(s.focused); },
 }));
