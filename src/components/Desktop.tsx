@@ -117,9 +117,13 @@ export default function Desktop() {
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const reset = () => { window.clearTimeout(idle.current as number); if (!saver) idle.current = window.setTimeout(() => setSaver(true), 60000); };
-    ["pointermove", "pointerdown", "keydown", "scroll"].forEach((ev) => addEventListener(ev, reset));
+    const events = ["pointermove", "pointerdown", "keydown", "scroll"] as const;
+    events.forEach((ev) => addEventListener(ev, reset));
     reset();
-    return () => { window.clearTimeout(idle.current as number); };
+    return () => {
+      events.forEach((ev) => removeEventListener(ev, reset));
+      window.clearTimeout(idle.current as number);
+    };
   }, [saver]);
 
   const running = (a: AppId) => os.windows.some((w) => w.appId === a);
