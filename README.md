@@ -25,18 +25,21 @@ Plain-résumé escape hatch is always one click away, top-right.
 
 | key | action |
 | --- | --- |
-| alt + tab | cycle windows |
+| alt + tab | cycle windows in the active workspace |
 | esc | close focused window |
-| l | toggle lights (3D room) |
-| r | skip the room |
+
+Each app belongs to a workspace. Switching workspaces focuses the topmost open
+window there; closing or minimizing a window returns focus to another open
+window in that workspace. Alt + Tab only cycles through windows in the active
+workspace.
 
 ## Mobile fallback
 
-below 768px the desktop session gives way to an app grid with fullscreen apps — no window chrome, no dragging. the same zustand stores drive both paths, so state survives the switch.
+below 768px the desktop session gives way to an app grid with fullscreen apps — no window chrome, no dragging.
 
 ## Persistence
 
-session state lives in `sessionStorage` (boot skip), preferences in `localStorage` (theme, accent, wallpaper, window geometry). incognito gives you the full boot every time.
+the boot-skip flag lives in `sessionStorage`; theme, accent, and wallpaper preferences live in `localStorage`. incognito gives you the full boot every time.
 
 ## Theming
 
@@ -44,7 +47,7 @@ colors are CSS custom properties on `:root`; the accent swap rewrites one variab
 
 ## Performance
 
-apps lazy-load, the shell stays under ~120KB gz, the 3D room mounts once. slow devices get the app-grid fallback.
+the production build bundles the desktop apps together. slow devices and narrow screens get the app-grid fallback.
 
 ## History
 
@@ -53,4 +56,4 @@ v1 was a baked GLB room that fought back for weeks. v2 was procedural. v3 wiped 
 
 ## Maintenance notes
 
-Test keyboard-only window operations, predictable focus after close/minimize/restore, workspace isolation, and reduced-motion behavior. Ensure focus indicators remain visible and windows stay within viewport bounds at zoomed layouts.
+Test keyboard-only window operations, predictable focus after close/minimize/restore, workspace isolation and active-workspace cycling, and reduced-motion behavior. Ensure focus indicators remain visible and windows stay within viewport bounds at zoomed layouts.
