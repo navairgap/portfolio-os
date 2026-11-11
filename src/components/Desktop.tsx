@@ -34,7 +34,7 @@ function ContextMenu({ pos, close }: { pos: { x: number; y: number }; close: () 
     return () => removeEventListener("pointerdown", h);
   }, [close]);
   return (
-    <div className="ctx" style={{ left: pos.x, top: pos.y }} onPointerDown={(e) => e.stopPropagation()}>
+    <div className="ctx" style={{ left: Math.max(0, Math.min(pos.x, window.innerWidth - 226)), top: Math.max(0, Math.min(pos.y, window.innerHeight - 158)) }} onPointerDown={(e) => e.stopPropagation()}>
       <button onClick={() => { setWallpaper(Math.floor(Math.random() * 4)); close(); }}><ImageIcon size={14} /> Change Background</button>
       <button onClick={() => { openApp("terminal"); close(); }}><Terminal size={14} /> Open Terminal Here</button>
       <hr />
