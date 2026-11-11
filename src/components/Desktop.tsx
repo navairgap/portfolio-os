@@ -101,6 +101,10 @@ export default function Desktop() {
     const h = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (overview) { setOverview(false); return; }
+        // Never steal Esc from a field the user is typing in.
+        const t = e.target;
+        if (t instanceof HTMLElement &&
+          (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
         os.closeTop();
       }
       if (e.key === "Tab" && e.altKey) { e.preventDefault(); os.cycleWindows(); }
