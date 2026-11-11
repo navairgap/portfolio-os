@@ -66,17 +66,27 @@ export function TerminalApp() {
           `                   Theme:  ${ABOUT.motto}`,
         );
         break;
-      case "ls":
-        if (cwd === "~") outLines.push("about.txt  contact.md  projects/  resume.txt");
-        else if (cwd === "~/projects") outLines.push(PROJECTS.map((p) => p.id + "/").join("  "));
-        else outLines.push(BAD("ls: empty"));
+      case "ls": {
+        const target = a.replace(/\/+$/, "");
+        if (!a || target === "." || target === "~" || target === cwd) {
+          if (cwd === "~") outLines.push("about.txt  contact.md  projects/  resume.txt");
+          else if (cwd === "~/projects") outLines.push(PROJECTS.map((p) => p.id + "/").join("  "));
+          else outLines.push(BAD("ls: empty"));
+        }
+        else if (target === "projects" || target === "~/projects") outLines.push(PROJECTS.map((p) => p.id + "/").join("  "));
+        else outLines.push(BAD(`ls: no such directory: ${ESC(target)}`));
         break;
-      case "cd":
-        if (!a || a === "~") setCwd("~");
-        else if (a === "projects" && cwd === "~") setCwd("~/projects");
-        else if (a === ".." || a === "~") setCwd("~");
-        else outLines.push(BAD(`cd: no such directory: ${ESC(a)}`));
+      }
+      case "cd": {
+        // Accept trailing slashes and both relative and ~-style paths.
+        const target = a.replace(/\/+$/, "");
+        if (!a || target === "~" || target === ".") setCwd("~");
+        else if (target === "..") setCwd("~"); // ~ is the root of this toy fs
+        else if (target === "projects" && cwd === "~") setCwd("~/projects");
+        else if (target === "~/projects") setCwd("~/projects");
+        else outLines.push(BAD(`cd: no such directory: ${ESC(target)}`));
         break;
+      }
       case "cat":
         if (a === "about.txt") outLines.push(ABOUT.bio);
         else if (a === "resume.txt") outLines.push("use the Text Editor app, or 'open resume'", WARN("(it's prettier there)"));
