@@ -9,6 +9,10 @@ import { PROJECTS, SKILLS, ABOUT, RESUME_TEXT, MAILS, BOOKMARKS, MAN_PAGES } fro
 const OK = (s: string) => `<span class="ok">${s}</span>`;
 const WARN = (s: string) => `<span class="warn">${s}</span>`;
 const BAD = (s: string) => `<span class="bad">${s}</span>`;
+// Terminal output is rendered via dangerouslySetInnerHTML, so anything a user
+// types must be escaped before it is interpolated into a message.
+const ESC = (s: string) =>
+  s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
 
 export function TerminalApp() {
   const openApp = useOS((s) => s.openApp);
@@ -31,7 +35,7 @@ export function TerminalApp() {
 
   function run(raw: string) {
     const cmd = raw.trim();
-    const echo = `<span class="prompt">${prompt()}</span> ${cmd.replace(/</g, "&lt;")}`;
+    const echo = `<span class="prompt">${prompt()}</span> ${ESC(cmd)}`;
     const outLines: string[] = [echo];
     const [c, ...args] = cmd.split(/\s+/);
     const a = args.join(" ");
@@ -71,14 +75,14 @@ export function TerminalApp() {
         if (!a || a === "~") setCwd("~");
         else if (a === "projects" && cwd === "~") setCwd("~/projects");
         else if (a === ".." || a === "~") setCwd("~");
-        else outLines.push(BAD(`cd: no such directory: ${a}`));
+        else outLines.push(BAD(`cd: no such directory: ${ESC(a)}`));
         break;
       case "cat":
         if (a === "about.txt") outLines.push(ABOUT.bio);
         else if (a === "resume.txt") outLines.push("use the Text Editor app, or 'open resume'", WARN("(it's prettier there)"));
         else if (a === "contact.md") outLines.push(`${ABOUT.email} · ${ABOUT.github}`);
         else if (a === "projects" || a === "projects/") outLines.push(PROJECTS.map((p) => `${p.name.toLowerCase()}/`).join("  "));
-        else outLines.push(BAD(`cat: ${a}: no such file`));
+        else outLines.push(BAD(`cat: ${ESC(a)}: no such file`));
         break;
       case "open": {
         if (!a) { outLines.push("open what? try: open gallery · open projects · open <project-id>"); break; }
@@ -92,9 +96,9 @@ export function TerminalApp() {
           monitor: () => openApp("monitor"),
         };
         const proj = PROJECTS.find((p) => p.id === a || p.name.toLowerCase() === a);
-        if (proj) { openApp("files", proj.id); outLines.push(OK(`opening ${proj.name}…`)); }
-        else if (map[a]) { map[a](); outLines.push(OK(`opening ${a}…`)); }
-        else outLines.push(BAD(`open: unknown target '${a}'`));
+        if (proj) { openApp("files", proj.id); outLines.push(OK(`opening ${ESC(proj.name)}…`)); }
+        else if (map[a]) { map[a](); outLines.push(OK(`opening ${ESC(a)}…`)); }
+        else outLines.push(BAD(`open: unknown target '${ESC(a)}'`));
         break;
       }
       case "whoami":
@@ -107,7 +111,7 @@ export function TerminalApp() {
         outLines.push(BAD(`${ABOUT.handle} is not in the sudoers file.`) + " This incident will be reported. (nice try)");
         break;
       case "man":
-        outLines.push(MAN_PAGES[a] || BAD(`no manual entry for ${a}`));
+        outLines.push(MAN_PAGES[a] || BAD(`no manual entry for ${ESC(a)}`));
         break;
       case "rm":
         outLines.push(BAD("rm: permission denied — this desktop is write-protected by good taste."));
@@ -119,7 +123,7 @@ export function TerminalApp() {
         setTimeout(closeTop, 120);
         return;
       default:
-        outLines.push(BAD(`command not found: ${c}`) + " — type 'help'");
+        outLines.push(BAD(`command not found: ${ESC(c)}`) + " — type 'help'");
     }
     setLines((l) => [...l, ...outLines]);
     setHist((h) => [...h, cmd]);
