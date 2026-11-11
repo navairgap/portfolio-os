@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+
+# local tooling state
+.mimosa/
+.v2c/
+.video_agent/
