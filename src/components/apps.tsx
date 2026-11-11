@@ -148,7 +148,9 @@ export function TerminalApp() {
 
   return (
     <div className="term" onClick={() => input.current?.focus()} ref={out}>
-      {lines.map((l, i) => <div className="out" key={i} dangerouslySetInnerHTML={{ __html: l || "&nbsp;" }} />)}
+      <div role="log" aria-live="polite" aria-label="terminal output">
+        {lines.map((l, i) => <div className="out" key={i} dangerouslySetInnerHTML={{ __html: l || "&nbsp;" }} />)}
+      </div>
       <div className="row">
         <span className="prompt">{prompt()}</span>
         <input

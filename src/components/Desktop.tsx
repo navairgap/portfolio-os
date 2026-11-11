@@ -187,7 +187,7 @@ export default function Desktop() {
 
       <div className="ws" aria-label="workspaces">
         {[0, 1, 2].map((i) => (
-          <button key={i} className={os.workspace === i ? "on" : ""} onClick={() => os.setWorkspace(i)}>{i + 1}</button>
+          <button key={i} className={os.workspace === i ? "on" : ""} aria-pressed={os.workspace === i} aria-label={"workspace " + (i + 1)} onClick={() => os.setWorkspace(i)}>{i + 1}</button>
         ))}
       </div>
 
