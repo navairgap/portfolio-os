@@ -314,9 +314,10 @@ export function MailApp() {
 
 /* ============================== EDITOR ============================== */
 export function EditorApp() {
+  const [text, setText] = useState(RESUME_TEXT);
   const [dirty, setDirty] = useState(false);
   const dl = () => {
-    const b = new Blob([RESUME_TEXT], { type: "text/plain" });
+    const b = new Blob([text], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(b);
     a.download = "navairgap-resume.txt";
@@ -329,7 +330,7 @@ export function EditorApp() {
         <button onClick={dl}><Save size={13} style={{ verticalAlign: -2 }} /> Export as .txt</button>
         <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--text2)", alignSelf: "center" }}>{dirty ? "modified" : "resume.txt — read-only-ish"}</span>
       </div>
-      <textarea defaultValue={RESUME_TEXT} onChange={() => setDirty(true)} spellCheck={false} aria-label="resume text" />
+      <textarea value={text} onChange={(e) => { setText(e.target.value); setDirty(true); }} spellCheck={false} aria-label="resume text" />
     </div>
   );
 }
