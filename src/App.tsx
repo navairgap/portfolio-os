@@ -56,7 +56,7 @@ function Login() {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
   const go = () => {
-    if (pw.length >= 0) setPhase("desktop");       // any password works, promise
+    if (pw.length > 0) setPhase("desktop");        // any password works, promise
     else setErr(true);
   };
   return (
