@@ -31,7 +31,13 @@ export default function Window({ win, children }: { win: AppWindow; children: Re
     if (!d) return;
     const dx = e.clientX - d.sx, dy = e.clientY - d.sy;
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
-    if (d.dir === "move") setGeom(win.id, { x: d.ox + dx, y: d.oy + dy, snap: null });
+    if (d.dir === "move") {
+      // Keep the window reachable: some of it stays on screen and the
+      // titlebar never slides under the top panel.
+      const x = Math.min(innerWidth - 80, Math.max(80 - d.ow, d.ox + dx));
+      const y = Math.min(innerHeight - 60, Math.max(38, d.oy + dy));
+      setGeom(win.id, { x, y, snap: null });
+    }
     else {
       let { x, y, width: w, height: h } = { x: d.ox, y: d.oy, width: d.ow, height: d.oh };
       if (d.dir.includes("e")) w = d.ow + dx;
