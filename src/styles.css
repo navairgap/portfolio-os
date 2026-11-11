@@ -84,7 +84,7 @@ input,textarea{font-family:var(--font-mono);color:var(--text)}
 
 /* activities overview */
 .overview{position:fixed;inset:0;z-index:150;background:rgba(10,10,14,.82);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;padding-top:12vh;gap:34px}
-.ov-search{width:min(440px,80vw);background:var(--elev);border:1px solid var(--line);border-radius:12px;padding:13px 18px;font-size:14px;outline:none;box-shadow:var(--shadow)}
+.ov-search{width:min(440px,80vw);background:var(--elev);border:1px solid var(--line);border-radius:12px;padding:13px 18px;font-size:16px;outline:none;box-shadow:var(--shadow)}
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:16px;width:min(760px,88vw)}
 .ov-grid button{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 8px;border-radius:14px;color:var(--text);font-size:12px}
 .ov-grid button:hover{background:rgba(255,255,255,.08)}
@@ -215,7 +215,7 @@ input,textarea{font-family:var(--font-mono);color:var(--text)}
 .gview .cap{font-family:var(--font-mono);font-size:11px;color:var(--text2)}
 
 /* screensaver */
-.saver{position:fixed;inset:0;z-index:300;background:#02030 5;background:#020305;display:block}
+.saver{position:fixed;inset:0;z-index:300;background:#020305;display:block}
 .skip-resume{position:fixed;top:44px;right:16px;z-index:70;font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;color:var(--text2);border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--surface)}
 .skip-resume:hover{color:var(--amber);border-color:var(--amber)}
 
