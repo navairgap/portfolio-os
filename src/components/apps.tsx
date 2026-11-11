@@ -162,7 +162,16 @@ export function FilesApp({ initial }: { initial?: string }) {
   const [view, setView] = useState<"home" | "projects">(initial === "projects" ? "projects" : "home");
 
   if (sel) {
-    const p = PROJECTS.find((x) => x.id === sel)!;
+    const p = PROJECTS.find((x) => x.id === sel);
+    if (!p) {
+      // Unknown payload — recover instead of crashing the window.
+      return (
+        <div className="fdetail">
+          <button onClick={() => setSel(null)} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text2)" }}>← back</button>
+          <p>unknown item</p>
+        </div>
+      );
+    }
     return (
       <div className="fdetail">
         <button onClick={() => setSel(null)} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text2)" }}>← back</button>
